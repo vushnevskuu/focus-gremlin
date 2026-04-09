@@ -22,22 +22,36 @@ enum PermissionGate {
         return true
     }
 
-    /// Открывает нужный раздел приватности (несколько схем URL — на новых macOS часто срабатывает только extension).
+    /// Deep link в подраздел приватности. Схема `…PrivacySecurity.extension?…` на части сборок macOS не зарегистрирована и даёт диалог Finder «нет приложения для URL».
     static func openPrivacyPane(anchor: String) {
+        let query = "Privacy_\(anchor)"
         let candidates: [String]
         if #available(macOS 13.0, *) {
             candidates = [
-                "x-apple.systemsettings:com.apple.settings.PrivacySecurity.extension?Privacy_\(anchor)",
-                "x-apple.systemsettings:com.apple.preference.security?Privacy_\(anchor)"
+                "x-apple.systemsettings:com.apple.preference.security?\(query)",
+                "x-apple.systempreferences:com.apple.preference.security?\(query)"
             ]
         } else {
             candidates = [
-                "x-apple.systempreferences:com.apple.preference.security?Privacy_\(anchor)"
+                "x-apple.systempreferences:com.apple.preference.security?\(query)"
             ]
         }
         for s in candidates {
             guard let url = URL(string: s) else { continue }
             NSWorkspace.shared.open(url)
+            return
+        }
+        openSystemPrivacySettingsFallback()
+    }
+
+    /// Если ни один URL не собрался — открываем хотя бы приложение «Настройки».
+    private static func openSystemPrivacySettingsFallback() {
+        let paths = [
+            "/System/Applications/System Settings.app",
+            "/System/Applications/System Preferences.app"
+        ]
+        for path in paths where FileManager.default.fileExists(atPath: path) {
+            NSWorkspace.shared.open(URL(fileURLWithPath: path, isDirectory: true))
             return
         }
     }
