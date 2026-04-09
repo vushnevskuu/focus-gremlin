@@ -14,6 +14,7 @@
 		1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */; };
 		20AA3A1F8FF66D2B35C3DAA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325955074560BE90B2D227E1 /* AppDelegate.swift */; };
 		23A0C012F1E95780129FABEF /* MLXProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */; };
+		3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */; };
 		32252E82A4BF6F30F54AA209 /* CompanionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */; };
 		360DFB1DEED27451B27C2EDA /* ScreenCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759E974247F7AFF6E72ADA0D /* ScreenCaptureService.swift */; };
 		376B54EBD95DE7567A0D6843 /* MockLLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36DF62341D41F9A79798044 /* MockLLMProvider.swift */; };
@@ -105,6 +106,7 @@
 		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
 		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
 		F36DF62341D41F9A79798044 /* MockLLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLLMProvider.swift; sourceTree = "<group>"; };
+		F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingRightSpriteView.swift; sourceTree = "<group>"; };
 		F7EA05D19743CCE560579033 /* FocusGremlinTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusGremlinTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F84D4378CF49F97C53A6ED98 /* FocusGremlin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FocusGremlin.entitlements; sourceTree = "<group>"; };
 		F86C65E7B49580589DEB9818 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -277,6 +279,7 @@
 				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
 				DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */,
+				F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */,
 				25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */,
 				401567CBCF520536A765E924 /* TypingDotsView.swift */,
 			);
@@ -393,6 +396,7 @@
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
 				51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */,
+				3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */,
 				DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */,
 				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,
 				C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */,

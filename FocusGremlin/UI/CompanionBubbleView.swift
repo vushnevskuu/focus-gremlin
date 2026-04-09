@@ -85,9 +85,12 @@ private struct GremlinAvatar: View {
                     GremlinIdleSpriteView(size: inner)
                         .opacity(useTypingSprite ? 0 : 1)
                     ZStack {
-                        if viewModel.cursorZone == .center {
+                        switch viewModel.cursorZone {
+                        case .center:
                             GremlinTalkingCenterSpriteView(size: inner)
-                        } else {
+                        case .right:
+                            GremlinTalkingRightSpriteView(size: inner)
+                        case .left:
                             GremlinTypingSpriteView(size: inner)
                         }
                     }
