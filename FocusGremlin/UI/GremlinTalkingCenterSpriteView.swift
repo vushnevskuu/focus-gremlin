@@ -10,7 +10,7 @@ private enum GremlinTalkingCenterSheet {
 }
 
 struct GremlinTalkingCenterSpriteView: View {
-    var size: CGFloat = 34
+    var displayHeight: CGFloat = GremlinOverlaySpriteMetrics.displayHeight
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinTalkingCenterSheet.fps)) { context in
@@ -22,7 +22,7 @@ struct GremlinTalkingCenterSpriteView: View {
                 frameCount: GremlinTalkingCenterSheet.frameCount,
                 pixelWidth: GremlinTalkingCenterSheet.pixelWidth,
                 pixelHeight: GremlinTalkingCenterSheet.pixelHeight,
-                box: size
+                displayHeight: displayHeight
             )
         }
     }

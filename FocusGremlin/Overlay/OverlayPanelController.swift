@@ -38,6 +38,7 @@ final class OverlayPanelController: NSObject {
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
         panel.contentView = hostingView
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
 
         hostingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

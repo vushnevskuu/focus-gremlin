@@ -12,7 +12,7 @@ private enum GremlinTypingSheet {
 
 /// Циклическое проигрывание листа печати (пока фаза typing/streaming).
 struct GremlinTypingSpriteView: View {
-    var size: CGFloat = 34
+    var displayHeight: CGFloat = GremlinOverlaySpriteMetrics.displayHeight
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinTypingSheet.fps)) { context in
@@ -24,7 +24,7 @@ struct GremlinTypingSpriteView: View {
                 frameCount: GremlinTypingSheet.frameCount,
                 pixelWidth: GremlinTypingSheet.pixelWidth,
                 pixelHeight: GremlinTypingSheet.pixelHeight,
-                box: size
+                displayHeight: displayHeight
             )
         }
     }

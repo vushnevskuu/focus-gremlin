@@ -1,30 +1,33 @@
 import SwiftUI
 
-/// Один кадр горизонтального спрайт-листа (ровная сетка по ширине).
+/// Высота одного кадра гремлина на оверлее (ширина из пропорций спрайт-листа).
+enum GremlinOverlaySpriteMetrics {
+    static let displayHeight: CGFloat = 120
+}
+
+/// Один кадр горизонтального спрайт-листа: масштаб по высоте кадра, без квадратной подложки.
 struct GremlinStripSpriteFrameView: View {
     let imageName: String
     let frameIndex: Int
     let frameCount: Int
     let pixelWidth: CGFloat
     let pixelHeight: CGFloat
-    let box: CGFloat
+    /// Высота кадра на экране; ширина вью = ширина клетки с учётом масштаба.
+    var displayHeight: CGFloat
 
     var body: some View {
         let cellW = pixelWidth / CGFloat(frameCount)
         let cellH = pixelHeight
-        let s = min(box / cellW, box / cellH)
+        let s = displayHeight / cellH
         let imgW = pixelWidth * s
         let imgH = pixelHeight * s
         let cellDisplayW = cellW * s
-        let cellDisplayH = cellH * s
-        let padX = (box - cellDisplayW) * 0.5
-        let padY = (box - cellDisplayH) * 0.5
 
         Image(imageName)
             .resizable()
             .frame(width: imgW, height: imgH)
-            .offset(x: -CGFloat(frameIndex) * cellDisplayW + padX, y: padY)
-            .frame(width: box, height: box)
+            .offset(x: -CGFloat(frameIndex) * cellDisplayW)
+            .frame(width: cellDisplayW, height: displayHeight, alignment: .leading)
             .clipped()
     }
 }
@@ -39,7 +42,7 @@ private enum GremlinIdleSheet {
 
 /// Циклическая анимация idle через `TimelineView` (без ручного Timer).
 struct GremlinIdleSpriteView: View {
-    var size: CGFloat = 38
+    var displayHeight: CGFloat = GremlinOverlaySpriteMetrics.displayHeight
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinIdleSheet.fps)) { context in
@@ -51,7 +54,7 @@ struct GremlinIdleSpriteView: View {
                 frameCount: GremlinIdleSheet.frameCount,
                 pixelWidth: GremlinIdleSheet.pixelWidth,
                 pixelHeight: GremlinIdleSheet.pixelHeight,
-                box: size
+                displayHeight: displayHeight
             )
         }
     }

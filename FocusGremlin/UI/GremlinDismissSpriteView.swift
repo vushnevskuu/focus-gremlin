@@ -11,7 +11,7 @@ enum GremlinDismissSheet {
 }
 
 struct GremlinDismissSpriteView: View {
-    var size: CGFloat = 34
+    var displayHeight: CGFloat = GremlinOverlaySpriteMetrics.displayHeight
     /// Момент перехода в фазу `.dismissing` — от него считаем кадры.
     var startDate: Date
 
@@ -26,7 +26,7 @@ struct GremlinDismissSpriteView: View {
                 frameCount: GremlinDismissSheet.frameCount,
                 pixelWidth: GremlinDismissSheet.pixelWidth,
                 pixelHeight: GremlinDismissSheet.pixelHeight,
-                box: size
+                displayHeight: displayHeight
             )
         }
     }
