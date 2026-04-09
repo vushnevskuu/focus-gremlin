@@ -1,17 +1,30 @@
 import AppKit
 import SwiftUI
 
-/// Рисует **ровно один кадр** горизонтального листа через `CGImage.cropping` — без сдвигов SwiftUI `Image`, из‑за которых видны два кадра и «окно» из чёрного фона.
+/// Рисует **один дискретный кадр** спрайт-листа: кроп по пикселям лучшего bitmap-репрезентации, без «прокрутки» полосы.
 final class GremlinSpriteStripDrawingView: NSView {
     private var assetName = ""
     private var frameIndex = 0
     private var frameCount = 1
-    private var displayHeightPoints: CGFloat = 120
 
     private static let imageCache = NSCache<NSString, NSImage>()
 
     override var isOpaque: Bool { false }
     override var isFlipped: Bool { true }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.isOpaque = false
+        layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        wantsLayer = true
+        layer?.isOpaque = false
+        layer?.backgroundColor = NSColor.clear.cgColor
+    }
 
     func configure(
         imageName: String,
@@ -22,7 +35,7 @@ final class GremlinSpriteStripDrawingView: NSView {
         self.assetName = imageName
         self.frameIndex = frameIndex
         self.frameCount = max(1, frameCount)
-        self.displayHeightPoints = displayHeight
+        _ = displayHeight
         needsDisplay = true
     }
 
@@ -33,20 +46,39 @@ final class GremlinSpriteStripDrawingView: NSView {
         return img
     }
 
+    /// Берём самый широкий `NSBitmapImageRep`, иначе fallback `cgImage`.
+    private static func rasterCGImage(from image: NSImage) -> CGImage? {
+        var best: NSBitmapImageRep?
+        var bestW = 0
+        for case let bmp as NSBitmapImageRep in image.representations {
+            if bmp.pixelsWide > bestW {
+                bestW = bmp.pixelsWide
+                best = bmp
+            }
+        }
+        if let best, let cg = best.cgImage { return cg }
+        return image.cgImage(forProposedRect: nil, context: nil, hints: nil)
+    }
+
     override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
+        NSColor.clear.setFill()
+        NSBezierPath(rect: bounds).fill()
+
         guard let img = Self.cachedImage(named: assetName),
-              let cgFull = img.cgImage(forProposedRect: nil, context: nil, hints: nil)
+              let cgFull = Self.rasterCGImage(from: img)
         else { return }
 
         let iw = cgFull.width
         let ih = cgFull.height
         guard ih > 0, frameCount > 0 else { return }
 
-        let cellW = max(1, iw / frameCount)
         let idx = min(max(frameIndex, 0), frameCount - 1)
-        let sx = idx * cellW
-        guard let part = cgFull.cropping(to: CGRect(x: sx, y: 0, width: cellW, height: ih))
+        let frameWIdeal = CGFloat(iw) / CGFloat(frameCount)
+        let sx = Int(floor(CGFloat(idx) * frameWIdeal))
+        let nextStart = idx + 1 < frameCount ? Int(floor(CGFloat(idx + 1) * frameWIdeal)) : iw
+        let cw = max(1, nextStart - sx)
+
+        guard let part = cgFull.cropping(to: CGRect(x: sx, y: 0, width: cw, height: ih))
         else { return }
 
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
@@ -54,15 +86,14 @@ final class GremlinSpriteStripDrawingView: NSView {
         defer { ctx.restoreGState() }
 
         let alpha = part.alphaInfo
-        let hasMeaningfulAlpha: Bool
+        let hasAlpha: Bool
         switch alpha {
         case .premultipliedLast, .premultipliedFirst, .last, .first, .alphaOnly:
-            hasMeaningfulAlpha = true
+            hasAlpha = true
         default:
-            hasMeaningfulAlpha = false
+            hasAlpha = false
         }
-        // Чёрный фон типичных листов: «вычитаем» через screen, чтобы не было прямоугольника.
-        ctx.setBlendMode(hasMeaningfulAlpha ? .normal : .screen)
+        ctx.setBlendMode(hasAlpha ? .normal : .screen)
         ctx.interpolationQuality = .none
 
         let r = bounds
@@ -79,13 +110,8 @@ struct GremlinSpriteStripRepresentable: NSViewRepresentable {
     var displayHeight: CGFloat
 
     func makeNSView(context: Context) -> GremlinSpriteStripDrawingView {
-        let v = GremlinSpriteStripDrawingView()
-        v.configure(
-            imageName: imageName,
-            frameIndex: frameIndex,
-            frameCount: frameCount,
-            displayHeight: displayHeight
-        )
+        let v = GremlinSpriteStripDrawingView(frame: .zero)
+        updateNSView(v, context: context)
         return v
     }
 

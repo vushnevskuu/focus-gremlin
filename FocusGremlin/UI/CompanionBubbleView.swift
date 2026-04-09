@@ -17,7 +17,7 @@ struct CompanionBubbleView: View {
                     TypingDotsView()
                 } else if !viewModel.visibleText.isEmpty {
                     Text(viewModel.visibleText)
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 34, weight: .heavy))
                         .foregroundStyle(Self.lineGreen)
                         .multilineTextAlignment(.center)
                         .lineLimit(nil)
@@ -35,7 +35,7 @@ struct CompanionBubbleView: View {
     }
 }
 
-/// Только спрайты, без круга и подложек — «висит в воздухе».
+/// Только спрайты. Idle и «говорение» **не** кладём в один ZStack с opacity — иначе при анимации видны два кадра сразу («туалетная бумага»).
 private struct FloatingGremlinAnimation: View {
     @ObservedObject var viewModel: CompanionViewModel
     var displayHeight: CGFloat
@@ -44,37 +44,38 @@ private struct FloatingGremlinAnimation: View {
         viewModel.phase == .typingDots || viewModel.phase == .streaming
     }
 
+    @ViewBuilder
+    private var typingSprite: some View {
+        Group {
+            if viewModel.deliverySpeechStyle == .negation {
+                GremlinTalkingNegateSpriteView(displayHeight: displayHeight)
+            } else {
+                switch viewModel.cursorZone {
+                case .center:
+                    GremlinTalkingCenterSpriteView(displayHeight: displayHeight)
+                case .right:
+                    GremlinTalkingRightSpriteView(displayHeight: displayHeight)
+                case .left:
+                    GremlinTypingSpriteView(displayHeight: displayHeight)
+                }
+            }
+        }
+        .id(viewModel.typingSpriteEpoch)
+    }
+
     var body: some View {
-        ZStack {
+        Group {
             if viewModel.phase == .dismissing, let t0 = viewModel.dismissSpriteStartedAt {
                 GremlinDismissSpriteView(displayHeight: displayHeight, startDate: t0)
+            } else if useTypingSprite {
+                typingSprite
             } else {
-                ZStack {
-                    GremlinIdleSpriteView(displayHeight: displayHeight)
-                        .opacity(useTypingSprite ? 0 : 1)
-                    ZStack {
-                        if viewModel.deliverySpeechStyle == .negation {
-                            GremlinTalkingNegateSpriteView(displayHeight: displayHeight)
-                        } else {
-                            switch viewModel.cursorZone {
-                            case .center:
-                                GremlinTalkingCenterSpriteView(displayHeight: displayHeight)
-                            case .right:
-                                GremlinTalkingRightSpriteView(displayHeight: displayHeight)
-                            case .left:
-                                GremlinTypingSpriteView(displayHeight: displayHeight)
-                            }
-                        }
-                    }
-                    .id(viewModel.typingSpriteEpoch)
-                    .opacity(useTypingSprite ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.11), value: viewModel.cursorZone)
-                    .animation(.easeInOut(duration: 0.11), value: viewModel.deliverySpeechStyle)
-                }
-                .animation(.easeInOut(duration: 0.13), value: useTypingSprite)
+                GremlinIdleSpriteView(displayHeight: displayHeight)
             }
         }
         .frame(height: displayHeight)
         .fixedSize(horizontal: true, vertical: false)
+        .animation(nil, value: viewModel.cursorZone)
+        .animation(nil, value: viewModel.deliverySpeechStyle)
     }
 }

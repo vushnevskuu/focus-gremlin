@@ -28,6 +28,7 @@ struct GremlinStripSpriteFrameView: View {
             displayHeight: displayHeight
         )
         .frame(width: cellDisplayW, height: displayHeight)
+        .transaction { $0.animation = nil }
     }
 }
 
