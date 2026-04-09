@@ -12,16 +12,34 @@ enum PermissionGate {
         accessibilityTrusted
     }
 
+    /// `CGPreflightScreenCaptureAccess` на части версий macOS расходится с TCC (в настройках уже «вкл», а preflight — false).
+    /// `CGRequestScreenCaptureAccess` при уже сохранённом ответе пользователя не показывает диалог и отражает фактический доступ.
     static var screenRecordingAuthorized: Bool {
         if #available(macOS 10.15, *) {
-            return CGPreflightScreenCaptureAccess()
+            if CGPreflightScreenCaptureAccess() { return true }
+            return CGRequestScreenCaptureAccess()
         }
         return true
     }
 
+    /// Открывает нужный раздел приватности (несколько схем URL — на новых macOS часто срабатывает только extension).
     static func openPrivacyPane(anchor: String) {
-        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_\(anchor)")!
-        NSWorkspace.shared.open(url)
+        let candidates: [String]
+        if #available(macOS 13.0, *) {
+            candidates = [
+                "x-apple.systemsettings:com.apple.settings.PrivacySecurity.extension?Privacy_\(anchor)",
+                "x-apple.systemsettings:com.apple.preference.security?Privacy_\(anchor)"
+            ]
+        } else {
+            candidates = [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_\(anchor)"
+            ]
+        }
+        for s in candidates {
+            guard let url = URL(string: s) else { continue }
+            NSWorkspace.shared.open(url)
+            return
+        }
     }
 
     /// Запросить доступ к записи экрана (покажет системный диалог при необходимости).

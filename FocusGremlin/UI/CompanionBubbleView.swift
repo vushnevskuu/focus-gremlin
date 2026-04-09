@@ -4,9 +4,12 @@ struct CompanionBubbleView: View {
     @ObservedObject var viewModel: CompanionViewModel
     @Environment(\.colorScheme) private var colorScheme
 
+    /// Ширина под длинные фразы; `NSHostingView.fittingSize` подстроит панель по высоте.
+    private var bubbleMaxWidth: CGFloat { 520 }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 GremlinAvatar()
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Focus Gremlin")
@@ -21,12 +24,17 @@ struct CompanionBubbleView: View {
                             .foregroundStyle(.primary)
                             .multilineTextAlignment(.leading)
                             .textSelection(.enabled)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
             }
         }
         .padding(14)
-        .frame(maxWidth: 320, alignment: .leading)
+        .frame(maxWidth: bubbleMaxWidth, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(.ultraThinMaterial)

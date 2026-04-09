@@ -1,7 +1,10 @@
+import AppKit
 import SwiftUI
 
 struct SettingsRootView: View {
     @EnvironmentObject private var settings: SettingsStore
+    /// Сбрасывает кэш SwiftUI: после выдачи прав в «Настройках» приложение снова читает AX/ScreenCapture.
+    @State private var permissionRefreshToken = 0
 
     var body: some View {
         Form {
@@ -112,20 +115,46 @@ struct SettingsRootView: View {
 
             Section("Приватность и доступы") {
                 LabeledContent("Accessibility") {
-                    Text(PermissionGate.accessibilityTrusted ? "Включено" : "Нужно для заголовка окна")
+                    Text(axTrustedLabel)
                         .foregroundStyle(PermissionGate.accessibilityTrusted ? .green : .orange)
                 }
                 LabeledContent("Запись экрана") {
-                    Text(PermissionGate.screenRecordingAuthorized ? "Разрешено" : "Нужно для Smart Mode")
+                    Text(screenLabel)
                         .foregroundStyle(PermissionGate.screenRecordingAuthorized ? .green : .orange)
                 }
-                Button("Открыть настройки приватности…") {
+                Button("Открыть: Accessibility") {
                     PermissionGate.openPrivacyPane(anchor: "Accessibility")
                 }
+                Button("Открыть: Запись экрана") {
+                    PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
+                }
+                Button("Обновить статус") {
+                    permissionRefreshToken &+= 1
+                }
+                Text(
+                    "Если только что включил доступ: вернись в это окно и нажми «Обновить статус» или полностью закрой Focus Gremlin (⌘Q) и запусти снова. В списке должен быть именно этот билд (Debug из Xcode и .app из папки build — разные записи)."
+                )
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             }
+            .id(permissionRefreshToken)
         }
         .formStyle(.grouped)
         .padding()
         .frame(minWidth: 520, minHeight: 640)
+        .onAppear { permissionRefreshToken &+= 1 }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            permissionRefreshToken &+= 1
+        }
+    }
+
+    private var axTrustedLabel: String {
+        _ = permissionRefreshToken
+        return PermissionGate.accessibilityTrusted ? "Включено" : "Нужно для заголовка окна"
+    }
+
+    private var screenLabel: String {
+        _ = permissionRefreshToken
+        return PermissionGate.screenRecordingAuthorized ? "Разрешено" : "Нужно для Smart Mode"
     }
 }
