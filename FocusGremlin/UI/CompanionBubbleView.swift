@@ -84,9 +84,16 @@ private struct GremlinAvatar: View {
                 ZStack {
                     GremlinIdleSpriteView(size: inner)
                         .opacity(useTypingSprite ? 0 : 1)
-                    GremlinTypingSpriteView(size: inner)
-                        .id(viewModel.typingSpriteEpoch)
-                        .opacity(useTypingSprite ? 1 : 0)
+                    ZStack {
+                        if viewModel.cursorZone == .center {
+                            GremlinTalkingCenterSpriteView(size: inner)
+                        } else {
+                            GremlinTypingSpriteView(size: inner)
+                        }
+                    }
+                    .id(viewModel.typingSpriteEpoch)
+                    .opacity(useTypingSprite ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.11), value: viewModel.cursorZone)
                 }
                 .animation(.easeInOut(duration: 0.13), value: useTypingSprite)
             }

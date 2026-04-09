@@ -8,6 +8,13 @@ enum BubblePhase: Equatable {
     case dismissing
 }
 
+/// Горизонтальная зона курсора на текущем экране (для выбора варианта «говорит»).
+enum GremlinCursorZone: Equatable {
+    case left
+    case center
+    case right
+}
+
 @MainActor
 final class CompanionViewModel: ObservableObject {
     @Published var phase: BubblePhase = .idle
@@ -17,8 +24,24 @@ final class CompanionViewModel: ObservableObject {
     @Published private(set) var dismissSpriteStartedAt: Date?
     /// Новый цикл спрайта печати с первого кадра при каждом сообщении.
     @Published private(set) var typingSpriteEpoch = UUID()
+    /// Обновляется из оверлея по сглаженной позиции курсора.
+    @Published private(set) var cursorZone: GremlinCursorZone = .center
 
     var isBusy: Bool { phase != .idle }
+
+    /// `normalizedScreenX` — 0…1 внутри `visibleFrame` экрана под курсором.
+    func updateCursorZone(normalizedScreenX: CGFloat) {
+        let next: GremlinCursorZone
+        if normalizedScreenX < 0.34 {
+            next = .left
+        } else if normalizedScreenX > 0.66 {
+            next = .right
+        } else {
+            next = .center
+        }
+        guard next != cursorZone else { return }
+        cursorZone = next
+    }
 
     private var deliveryTask: Task<Void, Never>?
 

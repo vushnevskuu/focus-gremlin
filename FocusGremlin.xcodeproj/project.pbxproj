@@ -24,6 +24,7 @@
 		4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401567CBCF520536A765E924 /* TypingDotsView.swift */; };
 		4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2644C4E5619AD2780134182F /* AppLogger.swift */; };
 		518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */; };
+		51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */; };
 		534C68CE9D924D6384AEC069 /* SmartModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */; };
 		5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */; };
 		60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */; };
@@ -99,6 +100,7 @@
 		D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchHysteresis.swift; sourceTree = "<group>"; };
 		D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionViewModel.swift; sourceTree = "<group>"; };
 		DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXProvider.swift; sourceTree = "<group>"; };
+		DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingCenterSpriteView.swift; sourceTree = "<group>"; };
 		E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
 		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
 		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
 				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
+				DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */,
 				25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */,
 				401567CBCF520536A765E924 /* TypingDotsView.swift */,
 			);
@@ -389,6 +392,7 @@
 				44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */,
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
+				51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */,
 				DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */,
 				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,
 				C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */,

@@ -72,6 +72,10 @@ final class OverlayPanelController: NSObject {
 
         if let screen = screenContaining(point: smoothedLocation) {
             let frame = screen.visibleFrame
+            let w = max(frame.width, 1)
+            let nx = (smoothedLocation.x - frame.minX) / w
+            viewModel.updateCursorZone(normalizedScreenX: nx)
+
             origin.x = min(max(frame.minX, origin.x), frame.maxX - size.width)
             origin.y = min(max(frame.minY, origin.y), frame.maxY - size.height)
         }
