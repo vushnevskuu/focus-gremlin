@@ -51,20 +51,29 @@ struct CompanionBubbleView: View {
 }
 
 private struct GremlinAvatar: View {
+    private let avatarSize: CGFloat = 38
+
     var body: some View {
         ZStack {
             Circle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.purple.opacity(0.85), Color.blue.opacity(0.75)],
+                        colors: [
+                            Color.purple.opacity(0.55),
+                            Color.blue.opacity(0.45)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-            Text("😈")
-                .font(.system(size: 22))
+            // Тёмная подложка, чтобы чёрный фон спрайт-листа не резал глаз у кромки круга.
+            Circle()
+                .fill(Color(white: 0.12))
+                .padding(2)
+            GremlinIdleSpriteView(size: avatarSize - 4)
         }
-        .frame(width: 38, height: 38)
+        .frame(width: avatarSize, height: avatarSize)
+        .clipShape(Circle())
         .overlay(
             Circle()
                 .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)

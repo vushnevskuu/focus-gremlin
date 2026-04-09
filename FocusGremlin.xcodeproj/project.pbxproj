@@ -20,6 +20,7 @@
 		37CB6B2CD92E13BA2E065A6C /* OllamaVisionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */; };
 		4075F28EF60A028905F26878 /* SmartCategoryMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */; };
 		42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */; };
+		44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */; };
 		4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401567CBCF520536A765E924 /* TypingDotsView.swift */; };
 		4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2644C4E5619AD2780134182F /* AppLogger.swift */; };
 		518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */; };
@@ -70,6 +71,7 @@
 		325955074560BE90B2D227E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3854F649018FB4932730A208 /* GremlinOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinOrchestrator.swift; sourceTree = "<group>"; };
 		3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
+		4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinIdleSpriteView.swift; sourceTree = "<group>"; };
 		401567CBCF520536A765E924 /* TypingDotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingDotsView.swift; sourceTree = "<group>"; };
 		4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTypes.swift; sourceTree = "<group>"; };
@@ -266,6 +268,7 @@
 			isa = PBXGroup;
 			children = (
 				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
+				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
 				401567CBCF520536A765E924 /* TypingDotsView.swift */,
 			);
 			path = UI;
@@ -376,6 +379,7 @@
 				F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */,
 				87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */,
 				60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */,
+				44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */,
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
 				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,
