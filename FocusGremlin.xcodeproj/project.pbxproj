@@ -28,6 +28,7 @@
 		51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */; };
 		534C68CE9D924D6384AEC069 /* SmartModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */; };
 		5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */; };
+		58CA8D93F324EF65CB730F39 /* GremlinSpeechContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */; };
 		60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */; };
 		67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */; };
 		6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */; };
@@ -42,6 +43,7 @@
 		C680B0B95B319501F0BE06A5 /* ScrollWheelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */; };
 		C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02397BEF3E9784FE6C995AFD /* LLMProvider.swift */; };
 		CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3854F649018FB4932730A208 /* GremlinOrchestrator.swift */; };
+		DAB4FCCE37A93BA46C59C8B9 /* GremlinTalkingNegateSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */; };
 		DC53473A608FA4DE9FED2004 /* CompanionBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */; };
 		DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */; };
 		DFA914077AF31666E6FB0CE8 /* OverlayPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E049620BA44901C27E77F5 /* OverlayPanelController.swift */; };
@@ -75,6 +77,7 @@
 		2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusClassifier.swift; sourceTree = "<group>"; };
 		2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinDismissSpriteView.swift; sourceTree = "<group>"; };
 		325955074560BE90B2D227E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingNegateSpriteView.swift; sourceTree = "<group>"; };
 		3854F649018FB4932730A208 /* GremlinOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinOrchestrator.swift; sourceTree = "<group>"; };
 		3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
 		4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinIdleSpriteView.swift; sourceTree = "<group>"; };
@@ -104,6 +107,7 @@
 		DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingCenterSpriteView.swift; sourceTree = "<group>"; };
 		E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
 		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
+		EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpeechContext.swift; sourceTree = "<group>"; };
 		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
 		F36DF62341D41F9A79798044 /* MockLLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLLMProvider.swift; sourceTree = "<group>"; };
 		F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingRightSpriteView.swift; sourceTree = "<group>"; };
@@ -223,6 +227,7 @@
 		9A914C04CED7643B4CC48C0E /* Character */ = {
 			isa = PBXGroup;
 			children = (
+				EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */,
 				ED3B91CF0737673B66F32633 /* MessageSelector.swift */,
 				3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */,
 				0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */,
@@ -279,6 +284,7 @@
 				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
 				DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */,
+				3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */,
 				F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */,
 				25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */,
 				401567CBCF520536A765E924 /* TypingDotsView.swift */,
@@ -395,7 +401,9 @@
 				44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */,
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
+				58CA8D93F324EF65CB730F39 /* GremlinSpeechContext.swift in Sources */,
 				51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */,
+				DAB4FCCE37A93BA46C59C8B9 /* GremlinTalkingNegateSpriteView.swift in Sources */,
 				3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */,
 				DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */,
 				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,

@@ -53,18 +53,23 @@ private struct FloatingGremlinAnimation: View {
                     GremlinIdleSpriteView(displayHeight: displayHeight)
                         .opacity(useTypingSprite ? 0 : 1)
                     ZStack {
-                        switch viewModel.cursorZone {
-                        case .center:
-                            GremlinTalkingCenterSpriteView(displayHeight: displayHeight)
-                        case .right:
-                            GremlinTalkingRightSpriteView(displayHeight: displayHeight)
-                        case .left:
-                            GremlinTypingSpriteView(displayHeight: displayHeight)
+                        if viewModel.deliverySpeechStyle == .negation {
+                            GremlinTalkingNegateSpriteView(displayHeight: displayHeight)
+                        } else {
+                            switch viewModel.cursorZone {
+                            case .center:
+                                GremlinTalkingCenterSpriteView(displayHeight: displayHeight)
+                            case .right:
+                                GremlinTalkingRightSpriteView(displayHeight: displayHeight)
+                            case .left:
+                                GremlinTypingSpriteView(displayHeight: displayHeight)
+                            }
                         }
                     }
                     .id(viewModel.typingSpriteEpoch)
                     .opacity(useTypingSprite ? 1 : 0)
                     .animation(.easeInOut(duration: 0.11), value: viewModel.cursorZone)
+                    .animation(.easeInOut(duration: 0.11), value: viewModel.deliverySpeechStyle)
                 }
                 .animation(.easeInOut(duration: 0.13), value: useTypingSprite)
             }

@@ -26,6 +26,8 @@ final class CompanionViewModel: ObservableObject {
     @Published private(set) var typingSpriteEpoch = UUID()
     /// Обновляется из оверлея по сглаженной позиции курсора.
     @Published private(set) var cursorZone: GremlinCursorZone = .center
+    /// Вариант речи на время текущей доставки (по тексту или явной подсказке).
+    @Published private(set) var deliverySpeechStyle: GremlinDeliverySpeechStyle = .spatial
 
     var isBusy: Bool { phase != .idle }
 
@@ -56,18 +58,21 @@ final class CompanionViewModel: ObservableObject {
         visibleText = ""
         bubbleOpacity = 0
         dismissSpriteStartedAt = nil
+        deliverySpeechStyle = .spatial
     }
 
     /// Живой цикл: точки → печать с редким «передумал» → удержание → исчезновение.
-    func runLiveDelivery(_ fullText: String) async {
+    /// `speechStyle`: если `nil`, стиль выводится из текста (`GremlinSpeechContext`).
+    func runLiveDelivery(_ fullText: String, speechStyle: GremlinDeliverySpeechStyle? = nil) async {
         deliveryTask?.cancel()
         deliveryTask = Task {
-            await animate(fullText)
+            await animate(fullText, speechStyle: speechStyle)
         }
         await deliveryTask?.value
     }
 
-    private func animate(_ fullText: String) async {
+    private func animate(_ fullText: String, speechStyle: GremlinDeliverySpeechStyle?) async {
+        deliverySpeechStyle = speechStyle ?? GremlinSpeechContext.inferSpeechStyle(for: fullText)
         typingSpriteEpoch = UUID()
         phase = .typingDots
         withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
