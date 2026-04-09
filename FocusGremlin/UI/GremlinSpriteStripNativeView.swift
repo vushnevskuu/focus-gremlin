@@ -85,15 +85,9 @@ final class GremlinSpriteStripDrawingView: NSView {
         ctx.saveGState()
         defer { ctx.restoreGState() }
 
-        let alpha = part.alphaInfo
-        let hasAlpha: Bool
-        switch alpha {
-        case .premultipliedLast, .premultipliedFirst, .last, .first, .alphaOnly:
-            hasAlpha = true
-        default:
-            hasAlpha = false
-        }
-        ctx.setBlendMode(hasAlpha ? .normal : .screen)
+        // Спрайты с прозрачным фоном (PNG + alpha) — только обычное наложение.
+        // Режим `.screen` для «вычитания» чёрного портит нормальные ассеты с альфой.
+        ctx.setBlendMode(.normal)
         ctx.interpolationQuality = .none
 
         let r = bounds
