@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0176605673F0EC5B3435FC0C /* OllamaProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */; };
 		018FB01EB02193AEABA07E2E /* CompanionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */; };
+		06B80062C8F7BFE10591FC42 /* GremlinSpriteStripNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */; };
 		0B0FC3FF3E611E3B482A6DB0 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */; };
 		1B54D34E1E020C69E54BB19A /* RecentMessageMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */; };
 		1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */; };
@@ -96,6 +97,7 @@
 		9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinPrompts.swift; sourceTree = "<group>"; };
 		A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeController.swift; sourceTree = "<group>"; };
+		AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteStripNativeView.swift; sourceTree = "<group>"; };
 		AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextProvider.swift; sourceTree = "<group>"; };
 		B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
 				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
+				AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */,
 				DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */,
 				3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */,
 				F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */,
@@ -402,6 +405,7 @@
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
 				58CA8D93F324EF65CB730F39 /* GremlinSpeechContext.swift in Sources */,
+				06B80062C8F7BFE10591FC42 /* GremlinSpriteStripNativeView.swift in Sources */,
 				51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */,
 				DAB4FCCE37A93BA46C59C8B9 /* GremlinTalkingNegateSpriteView.swift in Sources */,
 				3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */,

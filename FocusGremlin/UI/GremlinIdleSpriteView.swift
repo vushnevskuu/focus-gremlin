@@ -5,7 +5,7 @@ enum GremlinOverlaySpriteMetrics {
     static let displayHeight: CGFloat = 120
 }
 
-/// Один кадр горизонтального спрайт-листа: масштаб по высоте кадра, без квадратной подложки.
+/// Один кадр горизонтального спрайт-листа: **AppKit + CGImage.cropping** — настоящий спрайт, один кадр за тик.
 struct GremlinStripSpriteFrameView: View {
     let imageName: String
     let frameIndex: Int
@@ -19,16 +19,15 @@ struct GremlinStripSpriteFrameView: View {
         let cellW = pixelWidth / CGFloat(frameCount)
         let cellH = pixelHeight
         let s = displayHeight / cellH
-        let imgW = pixelWidth * s
-        let imgH = pixelHeight * s
         let cellDisplayW = cellW * s
 
-        Image(imageName)
-            .resizable()
-            .frame(width: imgW, height: imgH)
-            .offset(x: -CGFloat(frameIndex) * cellDisplayW)
-            .frame(width: cellDisplayW, height: displayHeight, alignment: .leading)
-            .clipped()
+        GremlinSpriteStripRepresentable(
+            imageName: imageName,
+            frameIndex: frameIndex,
+            frameCount: frameCount,
+            displayHeight: displayHeight
+        )
+        .frame(width: cellDisplayW, height: displayHeight)
     }
 }
 
