@@ -55,6 +55,11 @@ private struct GremlinAvatar: View {
 
     private let avatarSize: CGFloat = 38
 
+    /// Точки ожидания и набор текста — лист «на курсор/на строку»; удержание — idle.
+    private var useTypingSprite: Bool {
+        viewModel.phase == .typingDots || viewModel.phase == .streaming
+    }
+
     var body: some View {
         ZStack {
             Circle()
@@ -72,10 +77,18 @@ private struct GremlinAvatar: View {
             Circle()
                 .fill(Color(white: 0.12))
                 .padding(2)
+            let inner = avatarSize - 4
             if viewModel.phase == .dismissing, let t0 = viewModel.dismissSpriteStartedAt {
-                GremlinDismissSpriteView(size: avatarSize - 4, startDate: t0)
+                GremlinDismissSpriteView(size: inner, startDate: t0)
             } else {
-                GremlinIdleSpriteView(size: avatarSize - 4)
+                ZStack {
+                    GremlinIdleSpriteView(size: inner)
+                        .opacity(useTypingSprite ? 0 : 1)
+                    GremlinTypingSpriteView(size: inner)
+                        .id(viewModel.typingSpriteEpoch)
+                        .opacity(useTypingSprite ? 1 : 0)
+                }
+                .animation(.easeInOut(duration: 0.13), value: useTypingSprite)
             }
         }
         .frame(width: avatarSize, height: avatarSize)

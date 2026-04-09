@@ -15,6 +15,8 @@ final class CompanionViewModel: ObservableObject {
     @Published var bubbleOpacity: Double = 0
     /// Метка начала спрайта «улетания» (синхронно с `phase == .dismissing`).
     @Published private(set) var dismissSpriteStartedAt: Date?
+    /// Новый цикл спрайта печати с первого кадра при каждом сообщении.
+    @Published private(set) var typingSpriteEpoch = UUID()
 
     var isBusy: Bool { phase != .idle }
 
@@ -43,6 +45,7 @@ final class CompanionViewModel: ObservableObject {
     }
 
     private func animate(_ fullText: String) async {
+        typingSpriteEpoch = UUID()
         phase = .typingDots
         withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
             bubbleOpacity = 1
