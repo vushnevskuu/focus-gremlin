@@ -19,7 +19,11 @@ struct FocusEngineOutput: Sendable {
 @MainActor
 final class FocusEngineService: ObservableObject {
     private var timer: Timer?
-    private let scrollMonitor: ScrollWheelMonitor
+    private lazy var scrollMonitor: ScrollWheelMonitor = ScrollWheelMonitor { [weak self] in
+        Task { @MainActor in
+            self?.scrollTracker.recordScroll()
+        }
+    }
     private var scrollTracker = ScrollSessionTracker()
     private var hysteresis = AppSwitchHysteresis()
     private var distractionEnteredAt: Date?
@@ -34,11 +38,6 @@ final class FocusEngineService: ObservableObject {
     init(settings: SettingsStore, smartMode: SmartModeController) {
         self.settings = settings
         self.smartMode = smartMode
-        self.scrollMonitor = ScrollWheelMonitor { [weak self] in
-            Task { @MainActor in
-                self?.scrollTracker.recordScroll()
-            }
-        }
     }
 
     func start() {

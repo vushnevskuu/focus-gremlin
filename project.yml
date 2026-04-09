@@ -1,0 +1,62 @@
+name: FocusGremlin
+options:
+  bundleIdPrefix: com.focusgremlin
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  MARKETING_VERSION: "1.0"
+  CURRENT_PROJECT_VERSION: "1"
+  DEVELOPMENT_TEAM: ""
+  CODE_SIGN_STYLE: Automatic
+  ENABLE_HARDENED_RUNTIME: true
+  MACOSX_DEPLOYMENT_TARGET: "14.0"
+  SWIFT_VERSION: "5.0"
+
+targets:
+  FocusGremlin:
+    type: application
+    platform: macOS
+    sources:
+      - path: FocusGremlin
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.focusgremlin.app
+        INFOPLIST_FILE: FocusGremlin/Info.plist
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_ENTITLEMENTS: FocusGremlin/FocusGremlin.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_TESTABILITY: true
+        INFOPLIST_KEY_CFBundleDisplayName: Focus Gremlin
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        SWIFT_EMIT_LOC_STRINGS: true
+
+  FocusGremlinTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: FocusGremlinTests
+    dependencies:
+      - target: FocusGremlin
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.focusgremlin.tests
+        GENERATE_INFOPLIST_FILE: true
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/FocusGremlin.app/Contents/MacOS/FocusGremlin"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        SWIFT_EMIT_LOC_STRINGS: false
+
+schemes:
+  FocusGremlin:
+    build:
+      targets:
+        FocusGremlin: all
+        FocusGremlinTests: [test]
+    test:
+      targets:
+        - FocusGremlinTests
+    run:
+      config: Debug
+    archive:
+      config: Release

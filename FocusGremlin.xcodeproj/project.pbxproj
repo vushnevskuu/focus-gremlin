@@ -1,573 +1,660 @@
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
-	classes = {};
-	objectVersion = 56;
+	classes = {
+	};
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BDDFB6C4B9A34AE482943A56 /* FocusGremlinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E09F89D59F4F44A0B45CD1 /* FocusGremlinApp.swift */; };
-		38D3A75EC16C4EAF8BE3C098 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094B75E0A2F14208B6496F84 /* AppDelegate.swift */; };
-		2B661C9FDA9D4884969A4DB0 /* CompanionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BDF42DDD6141B282F521AB /* CompanionSession.swift */; };
-		195B24C2C1924759A14F5CB1 /* RootShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8F8513631204852B76E1F28 /* RootShellView.swift */; };
-		8DDFE9B576574796B7D76AAB /* OverlayPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFAEE8D92A464D81A1619695 /* OverlayPanelController.swift */; };
-		069B0D7885F4480685E1DE66 /* CompanionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BC4FEA465146949D204583 /* CompanionViewModel.swift */; };
-		429BA78F267947339FEE4AD7 /* CompanionBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D155C55F28148FF9E0A4609 /* CompanionBubbleView.swift */; };
-		BC5E86583AAD486CA0839FC2 /* TypingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92C729FD2DC4E5FB0DA06A9 /* TypingDotsView.swift */; };
-		6A82CA30A9334B708D0C08A7 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26A48B6EE0348EEB3A59B1E /* FocusTypes.swift */; };
-		0CE0A139F10E44E594F9E6F0 /* FocusClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87F4922FF168471FAB9221B8 /* FocusClassifier.swift */; };
-		82B686F848B441FFA7D7F60E /* InterruptionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48AEC03B77104BC1B31BB0D5 /* InterruptionPolicy.swift */; };
-		D8D309C46E9847B384A4AE77 /* AppSwitchHysteresis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1EB0B71F7940E7AA4EEF0D /* AppSwitchHysteresis.swift */; };
-		FFEA7D4BA417483AA7658BB1 /* ScrollSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9731B8D1B764509A9A321B2 /* ScrollSessionTracker.swift */; };
-		708CDB760B644345ACD40782 /* WindowContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2311520EFF7466FBBDF2A4B /* WindowContextProvider.swift */; };
-		214DC06FDD2A4713B4B774D4 /* ScrollWheelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD3BAEFF47804AFE91A909DE /* ScrollWheelMonitor.swift */; };
-		A80DD6A5B5D54F75B16E4488 /* FocusEngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61868F48ECB04037B78EE0CA /* FocusEngineService.swift */; };
-		3C0070D4F1664032B5E1AC7D /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B37DA16FF3A48DF963045CE /* LLMProvider.swift */; };
-		66248D719A3D48869FB4ACBF /* MockLLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D6A49F1E0A4010851C2C8C /* MockLLMProvider.swift */; };
-		EDB44E202FD9441E8F90CAB3 /* MLXProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB6A46701484EA082E1F3AE /* MLXProvider.swift */; };
-		3EC8AF158E9A4C49A9139CE2 /* OllamaProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B13606C19A4665BF89C5C7 /* OllamaProvider.swift */; };
-		77F2D96CFB1B4A93879D0BDE /* GremlinPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6113E8A011B4794BA395EB4 /* GremlinPrompts.swift */; };
-		1223FCF8793E49129E268AAE /* GremlinOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E6AD15D027468492C68BA6 /* GremlinOrchestrator.swift */; };
-		CC845906072A486B8FDE30CF /* RecentMessageMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E5C214167D4541A4791CDA /* RecentMessageMemory.swift */; };
-		7D0B7F9591D34D7489030122 /* TemplatePhraseBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59F9124CA644DCD9151281C /* TemplatePhraseBank.swift */; };
-		E45E8D91267E4107BD706E6E /* MessageSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A010155873044164891B5515 /* MessageSelector.swift */; };
-		B298761BFF6B4DD0BB416F3D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EDC3BFB15C486396320459 /* SettingsStore.swift */; };
-		3D767EDEE9BE4524A4756DFF /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AAAEB75A92A4FAFBF246B0F /* SettingsRootView.swift */; };
-		4ADF5DAC2736429780F95BB8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B20D6FE90D04975A00C7E82 /* OnboardingView.swift */; };
-		C81EAA88813C41188B4BB496 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BECE7B6AA34D4EAB3CEF28 /* PermissionGate.swift */; };
-		8082B53DB716455288687442 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C1760EA7BF24C47B75313FD /* AppLogger.swift */; };
-		2C3B4B970E89407EAFB87F48 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D652D2F54E4DBE9E65BA72 /* FeatureFlags.swift */; };
-		98D012B3C00042B0A76D4A44 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC29FA0FA3194E559CC82585 /* LoginItemManager.swift */; };
-		BADDCAFE0000000000000003 /* SmartCategoryMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADDCAFE0000000000000002 /* SmartCategoryMerge.swift */; };
-		BADDCAFE0000000000000005 /* ScreenCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADDCAFE0000000000000004 /* ScreenCaptureService.swift */; };
-		BADDCAFE0000000000000007 /* OllamaVisionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADDCAFE0000000000000006 /* OllamaVisionClassifier.swift */; };
-		BADDCAFE0000000000000009 /* SmartModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADDCAFE0000000000000008 /* SmartModeController.swift */; };
-		BADDCAFE000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BADDCAFE000000000000000A /* Assets.xcassets */; };
-		D4B463F17D4445209CB1A866 /* FocusGremlinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F52F3F9EAC84785B73440E7 /* FocusGremlinTests.swift */; };
+		0176605673F0EC5B3435FC0C /* OllamaProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */; };
+		018FB01EB02193AEABA07E2E /* CompanionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */; };
+		0B0FC3FF3E611E3B482A6DB0 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */; };
+		1B54D34E1E020C69E54BB19A /* RecentMessageMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */; };
+		1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */; };
+		20AA3A1F8FF66D2B35C3DAA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325955074560BE90B2D227E1 /* AppDelegate.swift */; };
+		23A0C012F1E95780129FABEF /* MLXProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */; };
+		32252E82A4BF6F30F54AA209 /* CompanionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */; };
+		360DFB1DEED27451B27C2EDA /* ScreenCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759E974247F7AFF6E72ADA0D /* ScreenCaptureService.swift */; };
+		376B54EBD95DE7567A0D6843 /* MockLLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36DF62341D41F9A79798044 /* MockLLMProvider.swift */; };
+		37CB6B2CD92E13BA2E065A6C /* OllamaVisionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */; };
+		4075F28EF60A028905F26878 /* SmartCategoryMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */; };
+		42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */; };
+		4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401567CBCF520536A765E924 /* TypingDotsView.swift */; };
+		4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2644C4E5619AD2780134182F /* AppLogger.swift */; };
+		518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */; };
+		534C68CE9D924D6384AEC069 /* SmartModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */; };
+		5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */; };
+		60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */; };
+		67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */; };
+		6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */; };
+		87863A9841AA283D3958631A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A88B05432F185EDCDD95A2 /* OnboardingView.swift */; };
+		87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */; };
+		938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */; };
+		9CDDB66360CB123E6F7293BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F86C65E7B49580589DEB9818 /* Assets.xcassets */; };
+		A20D8D39ABA7F37236612112 /* MessageSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3B91CF0737673B66F32633 /* MessageSelector.swift */; };
+		A4E7D99CBD56BD29D5D64512 /* WindowContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */; };
+		BA5016854CDD32BD104CE66E /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */; };
+		C680B0B95B319501F0BE06A5 /* ScrollWheelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */; };
+		C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02397BEF3E9784FE6C995AFD /* LLMProvider.swift */; };
+		CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3854F649018FB4932730A208 /* GremlinOrchestrator.swift */; };
+		DC53473A608FA4DE9FED2004 /* CompanionBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */; };
+		DFA914077AF31666E6FB0CE8 /* OverlayPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E049620BA44901C27E77F5 /* OverlayPanelController.swift */; };
+		E27EB2F5905380D4295F2BFD /* RootShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1E4AD36F892B3BBED922BC /* RootShellView.swift */; };
+		E5B0D4B959D9C0BB078D7F6B /* AppSwitchHysteresis.swift in Sources */ = {isa = PBXBuildFile; fileRef = D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */; };
+		F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */; };
+		F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */; };
+		FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		3B254B6272B2572C3A3774AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D1F6A509CB207177C3C2A5F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6217F81454991F39C5649E09;
+			remoteInfo = FocusGremlin;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		6DEAE63470494D58B317FF99 /* FocusGremlin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusGremlin.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		559A556472C447B4B5060D91 /* FocusGremlinTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusGremlinTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3BBDA3E72965480F8E85DC4B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D2C8D35D12E14764B8AC7F3E /* FocusGremlin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FocusGremlin.entitlements; sourceTree = "<group>"; };
-		37E09F89D59F4F44A0B45CD1 /* FocusGremlinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinApp.swift; sourceTree = "<group>"; };
-		094B75E0A2F14208B6496F84 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		C4BDF42DDD6141B282F521AB /* CompanionSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSession.swift; sourceTree = "<group>"; };
-		C8F8513631204852B76E1F28 /* RootShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootShellView.swift; sourceTree = "<group>"; };
-		FFAEE8D92A464D81A1619695 /* OverlayPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelController.swift; sourceTree = "<group>"; };
-		56BC4FEA465146949D204583 /* CompanionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionViewModel.swift; sourceTree = "<group>"; };
-		0D155C55F28148FF9E0A4609 /* CompanionBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBubbleView.swift; sourceTree = "<group>"; };
-		D92C729FD2DC4E5FB0DA06A9 /* TypingDotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingDotsView.swift; sourceTree = "<group>"; };
-		D26A48B6EE0348EEB3A59B1E /* FocusTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTypes.swift; sourceTree = "<group>"; };
-		87F4922FF168471FAB9221B8 /* FocusClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusClassifier.swift; sourceTree = "<group>"; };
-		48AEC03B77104BC1B31BB0D5 /* InterruptionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterruptionPolicy.swift; sourceTree = "<group>"; };
-		1B1EB0B71F7940E7AA4EEF0D /* AppSwitchHysteresis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchHysteresis.swift; sourceTree = "<group>"; };
-		D9731B8D1B764509A9A321B2 /* ScrollSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollSessionTracker.swift; sourceTree = "<group>"; };
-		F2311520EFF7466FBBDF2A4B /* WindowContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextProvider.swift; sourceTree = "<group>"; };
-		FD3BAEFF47804AFE91A909DE /* ScrollWheelMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollWheelMonitor.swift; sourceTree = "<group>"; };
-		61868F48ECB04037B78EE0CA /* FocusEngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusEngineService.swift; sourceTree = "<group>"; };
-		6B37DA16FF3A48DF963045CE /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
-		B3D6A49F1E0A4010851C2C8C /* MockLLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLLMProvider.swift; sourceTree = "<group>"; };
-		3FB6A46701484EA082E1F3AE /* MLXProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXProvider.swift; sourceTree = "<group>"; };
-		81B13606C19A4665BF89C5C7 /* OllamaProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaProvider.swift; sourceTree = "<group>"; };
-		D6113E8A011B4794BA395EB4 /* GremlinPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinPrompts.swift; sourceTree = "<group>"; };
-		A1E6AD15D027468492C68BA6 /* GremlinOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinOrchestrator.swift; sourceTree = "<group>"; };
-		57E5C214167D4541A4791CDA /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
-		C59F9124CA644DCD9151281C /* TemplatePhraseBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePhraseBank.swift; sourceTree = "<group>"; };
-		A010155873044164891B5515 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
-		B4EDC3BFB15C486396320459 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		5AAAEB75A92A4FAFBF246B0F /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
-		6B20D6FE90D04975A00C7E82 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		32BECE7B6AA34D4EAB3CEF28 /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
-		6C1760EA7BF24C47B75313FD /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
-		07D652D2F54E4DBE9E65BA72 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
-		DC29FA0FA3194E559CC82585 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
-		BADDCAFE0000000000000002 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
-		BADDCAFE0000000000000004 /* ScreenCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureService.swift; sourceTree = "<group>"; };
-		BADDCAFE0000000000000006 /* OllamaVisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaVisionClassifier.swift; sourceTree = "<group>"; };
-		BADDCAFE0000000000000008 /* SmartModeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeController.swift; sourceTree = "<group>"; };
-		BADDCAFE000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		9F52F3F9EAC84785B73440E7 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
+		00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinApp.swift; sourceTree = "<group>"; };
+		02397BEF3E9784FE6C995AFD /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
+		0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePhraseBank.swift; sourceTree = "<group>"; };
+		0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
+		22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaProvider.swift; sourceTree = "<group>"; };
+		22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollSessionTracker.swift; sourceTree = "<group>"; };
+		2644C4E5619AD2780134182F /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaVisionClassifier.swift; sourceTree = "<group>"; };
+		2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusClassifier.swift; sourceTree = "<group>"; };
+		325955074560BE90B2D227E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3854F649018FB4932730A208 /* GremlinOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinOrchestrator.swift; sourceTree = "<group>"; };
+		3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
+		401567CBCF520536A765E924 /* TypingDotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingDotsView.swift; sourceTree = "<group>"; };
+		4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
+		5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTypes.swift; sourceTree = "<group>"; };
+		6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollWheelMonitor.swift; sourceTree = "<group>"; };
+		72A88B05432F185EDCDD95A2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		72E049620BA44901C27E77F5 /* OverlayPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelController.swift; sourceTree = "<group>"; };
+		759E974247F7AFF6E72ADA0D /* ScreenCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureService.swift; sourceTree = "<group>"; };
+		81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBubbleView.swift; sourceTree = "<group>"; };
+		8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusEngineService.swift; sourceTree = "<group>"; };
+		866A36932D1955A4A07395F3 /* FocusGremlin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusGremlin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterruptionPolicy.swift; sourceTree = "<group>"; };
+		9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSession.swift; sourceTree = "<group>"; };
+		9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinPrompts.swift; sourceTree = "<group>"; };
+		A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeController.swift; sourceTree = "<group>"; };
+		AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
+		AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextProvider.swift; sourceTree = "<group>"; };
+		B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		BA1D909D7B7353C829693857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BC1E4AD36F892B3BBED922BC /* RootShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootShellView.swift; sourceTree = "<group>"; };
+		D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchHysteresis.swift; sourceTree = "<group>"; };
+		D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionViewModel.swift; sourceTree = "<group>"; };
+		DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXProvider.swift; sourceTree = "<group>"; };
+		E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
+		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
+		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
+		F36DF62341D41F9A79798044 /* MockLLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLLMProvider.swift; sourceTree = "<group>"; };
+		F7EA05D19743CCE560579033 /* FocusGremlinTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusGremlinTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F84D4378CF49F97C53A6ED98 /* FocusGremlin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FocusGremlin.entitlements; sourceTree = "<group>"; };
+		F86C65E7B49580589DEB9818 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFrameworksBuildPhase section */
-		18B9DDE8D6DF42FA936DE025 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		47EF128A866E422C869B8DDC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
 /* Begin PBXGroup section */
-		24E8957E0DFE466CBD6E3BEF = {
+		17A764EE6ECC2AFEA2403247 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5205EE03CABA498CA6D77602 /* FocusGremlin */,
-				E29CF6716DC04B8691A49D19 /* Products */,
-				479495F42A91401CBCA2733F /* FocusGremlinTests */,
-			);
-			sourceTree = "<group>";
-		};
-		E29CF6716DC04B8691A49D19 = {
-			isa = PBXGroup;
-			children = (
-				6DEAE63470494D58B317FF99 /* FocusGremlin.app */,
-				559A556472C447B4B5060D91 /* FocusGremlinTests.xctest */,
+				866A36932D1955A4A07395F3 /* FocusGremlin.app */,
+				F7EA05D19743CCE560579033 /* FocusGremlinTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9E5988C604FB42198688BE48 = {
+		2060989D2AF7EDF70112D301 = {
 			isa = PBXGroup;
 			children = (
-				37E09F89D59F4F44A0B45CD1,
-				094B75E0A2F14208B6496F84,
-				C4BDF42DDD6141B282F521AB,
-				C8F8513631204852B76E1F28,
+				8EDBC604189D49DE1EA9239B /* FocusGremlin */,
+				280E9FF8604B4228F63C4CD1 /* FocusGremlinTests */,
+				17A764EE6ECC2AFEA2403247 /* Products */,
 			);
-			path = App;
 			sourceTree = "<group>";
 		};
-		3880E444A92F480BA1BF126A = {
+		227811D53A7B730983AB9C28 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
-				FFAEE8D92A464D81A1619695,
-				56BC4FEA465146949D204583,
-			);
-			path = Overlay;
-			sourceTree = "<group>";
-		};
-		EDB214A9DD3F4E9DA254490F = {
-			isa = PBXGroup;
-			children = (
-				0D155C55F28148FF9E0A4609,
-				D92C729FD2DC4E5FB0DA06A9,
-			);
-			path = UI;
-			sourceTree = "<group>";
-		};
-		598231090550419AB058CC3C = {
-			isa = PBXGroup;
-			children = (
-				D26A48B6EE0348EEB3A59B1E,
-				87F4922FF168471FAB9221B8,
-				48AEC03B77104BC1B31BB0D5,
-				1B1EB0B71F7940E7AA4EEF0D,
-				D9731B8D1B764509A9A321B2,
-				F2311520EFF7466FBBDF2A4B,
-				FD3BAEFF47804AFE91A909DE,
-				61868F48ECB04037B78EE0CA,
-			);
-			path = FocusEngine;
-			sourceTree = "<group>";
-		};
-		0C425015964B415EA20DF26B = {
-			isa = PBXGroup;
-			children = (
-				6B37DA16FF3A48DF963045CE,
-				B3D6A49F1E0A4010851C2C8C,
-				3FB6A46701484EA082E1F3AE,
-				81B13606C19A4665BF89C5C7,
-				D6113E8A011B4794BA395EB4,
-				A1E6AD15D027468492C68BA6,
-			);
-			path = LLM;
-			sourceTree = "<group>";
-		};
-		4B3395308FE3464EBD0A60B1 = {
-			isa = PBXGroup;
-			children = (
-				57E5C214167D4541A4791CDA,
-				C59F9124CA644DCD9151281C,
-				A010155873044164891B5515,
-			);
-			path = Character;
-			sourceTree = "<group>";
-		};
-		5216E6A0550844D99255FEF1 = {
-			isa = PBXGroup;
-			children = (
-				B4EDC3BFB15C486396320459,
-			);
-			path = Persistence;
-			sourceTree = "<group>";
-		};
-		F7639F6C158346F295063ECD = {
-			isa = PBXGroup;
-			children = (
-				5AAAEB75A92A4FAFBF246B0F,
-			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		4459484628A5453394424680 = {
-			isa = PBXGroup;
-			children = (
-				6B20D6FE90D04975A00C7E82,
+				72A88B05432F185EDCDD95A2 /* OnboardingView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		5C4E83ADCA114627A97F175D = {
+		280E9FF8604B4228F63C4CD1 /* FocusGremlinTests */ = {
 			isa = PBXGroup;
 			children = (
-				32BECE7B6AA34D4EAB3CEF28,
-			);
-			path = Permissions;
-			sourceTree = "<group>";
-		};
-		79C1B5DD4CF2464BB99BDD30 = {
-			isa = PBXGroup;
-			children = (
-				6C1760EA7BF24C47B75313FD,
-				07D652D2F54E4DBE9E65BA72,
-				DC29FA0FA3194E559CC82585,
-			);
-			path = Utilities;
-			sourceTree = "<group>";
-		};
-		BADDCAFE0000000000000001 = {
-			isa = PBXGroup;
-			children = (
-				BADDCAFE0000000000000002,
-				BADDCAFE0000000000000004,
-				BADDCAFE0000000000000006,
-				BADDCAFE0000000000000008,
-			);
-			path = SmartMode;
-			sourceTree = "<group>";
-		};
-		479495F42A91401CBCA2733F = {
-			isa = PBXGroup;
-			children = (
-				9F52F3F9EAC84785B73440E7 /* FocusGremlinTests.swift */,
+				EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */,
 			);
 			path = FocusGremlinTests;
 			sourceTree = "<group>";
 		};
-		5205EE03CABA498CA6D77602 = {
+		2D32E3426AB376EB7C2EA8DA /* SmartMode */ = {
 			isa = PBXGroup;
 			children = (
-				BADDCAFE000000000000000A /* Assets.xcassets */,
-				3BBDA3E72965480F8E85DC4B /* Info.plist */,
-				D2C8D35D12E14764B8AC7F3E /* FocusGremlin.entitlements */,
-				9E5988C604FB42198688BE48 /* app */,
-				3880E444A92F480BA1BF126A /* overlay */,
-				EDB214A9DD3F4E9DA254490F /* ui */,
-				598231090550419AB058CC3C /* focus */,
-				0C425015964B415EA20DF26B /* llm */,
-				4B3395308FE3464EBD0A60B1 /* character */,
-				5216E6A0550844D99255FEF1 /* persistence */,
-				F7639F6C158346F295063ECD /* settings */,
-				4459484628A5453394424680 /* onboarding */,
-				5C4E83ADCA114627A97F175D /* permissions */,
-				79C1B5DD4CF2464BB99BDD30 /* utilities */,
-				BADDCAFE0000000000000001 /* SmartMode */,
+				26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */,
+				759E974247F7AFF6E72ADA0D /* ScreenCaptureService.swift */,
+				E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */,
+				A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */,
+			);
+			path = SmartMode;
+			sourceTree = "<group>";
+		};
+		41D49FDAE46621CAC245EE93 /* Overlay */ = {
+			isa = PBXGroup;
+			children = (
+				D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */,
+				72E049620BA44901C27E77F5 /* OverlayPanelController.swift */,
+			);
+			path = Overlay;
+			sourceTree = "<group>";
+		};
+		4DC89045E77D1C076FD224E2 /* Permissions */ = {
+			isa = PBXGroup;
+			children = (
+				AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */,
+			);
+			path = Permissions;
+			sourceTree = "<group>";
+		};
+		7EBB1FB56B8855032B7F06CB /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				2644C4E5619AD2780134182F /* AppLogger.swift */,
+				9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */,
+				0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		8EDBC604189D49DE1EA9239B /* FocusGremlin */ = {
+			isa = PBXGroup;
+			children = (
+				F86C65E7B49580589DEB9818 /* Assets.xcassets */,
+				F84D4378CF49F97C53A6ED98 /* FocusGremlin.entitlements */,
+				BA1D909D7B7353C829693857 /* Info.plist */,
+				D59BC4CFA64B3FA495838263 /* App */,
+				9A914C04CED7643B4CC48C0E /* Character */,
+				DF08BD85F1BFA3329DA15239 /* FocusEngine */,
+				91F896C2E1F1BFB8DD195D18 /* LLM */,
+				227811D53A7B730983AB9C28 /* Onboarding */,
+				41D49FDAE46621CAC245EE93 /* Overlay */,
+				4DC89045E77D1C076FD224E2 /* Permissions */,
+				BAFBFE0550EDC6BEF83F2C92 /* Persistence */,
+				C57E849044BBCC0B146391AD /* Settings */,
+				2D32E3426AB376EB7C2EA8DA /* SmartMode */,
+				F2D929E5695BDA601E7616D5 /* UI */,
+				7EBB1FB56B8855032B7F06CB /* Utilities */,
 			);
 			path = FocusGremlin;
+			sourceTree = "<group>";
+		};
+		91F896C2E1F1BFB8DD195D18 /* LLM */ = {
+			isa = PBXGroup;
+			children = (
+				3854F649018FB4932730A208 /* GremlinOrchestrator.swift */,
+				9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */,
+				02397BEF3E9784FE6C995AFD /* LLMProvider.swift */,
+				DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */,
+				F36DF62341D41F9A79798044 /* MockLLMProvider.swift */,
+				22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */,
+			);
+			path = LLM;
+			sourceTree = "<group>";
+		};
+		9A914C04CED7643B4CC48C0E /* Character */ = {
+			isa = PBXGroup;
+			children = (
+				ED3B91CF0737673B66F32633 /* MessageSelector.swift */,
+				3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */,
+				0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */,
+			);
+			path = Character;
+			sourceTree = "<group>";
+		};
+		BAFBFE0550EDC6BEF83F2C92 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		C57E849044BBCC0B146391AD /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		D59BC4CFA64B3FA495838263 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				325955074560BE90B2D227E1 /* AppDelegate.swift */,
+				9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */,
+				00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */,
+				BC1E4AD36F892B3BBED922BC /* RootShellView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		DF08BD85F1BFA3329DA15239 /* FocusEngine */ = {
+			isa = PBXGroup;
+			children = (
+				D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */,
+				2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */,
+				8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */,
+				5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */,
+				9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */,
+				22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */,
+				6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */,
+				AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */,
+			);
+			path = FocusEngine;
+			sourceTree = "<group>";
+		};
+		F2D929E5695BDA601E7616D5 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
+				401567CBCF520536A765E924 /* TypingDotsView.swift */,
+			);
+			path = UI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3C09D5AEE8284390BF87DA41 /* FocusGremlin */ = {
+		6217F81454991F39C5649E09 /* FocusGremlin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E88F600F8F484CC4A97A9325 /* Build configuration list for PBXNativeTarget "FocusGremlin" */;
+			buildConfigurationList = 3736FDCF458E699215F5DB08 /* Build configuration list for PBXNativeTarget "FocusGremlin" */;
 			buildPhases = (
-				F65DCD2CFAF948F783DD5491 /* Sources */,
-				18B9DDE8D6DF42FA936DE025 /* Frameworks */,
-				83F394E968F3418DAA7D3652 /* Resources */,
+				252D359C8A699A8D8A0BE9AF /* Sources */,
+				8E8CBE252512FE0D74E8760E /* Resources */,
 			);
-			buildRules = ();
-			dependencies = ();
+			buildRules = (
+			);
+			dependencies = (
+			);
 			name = FocusGremlin;
+			packageProductDependencies = (
+			);
 			productName = FocusGremlin;
-			productReference = 6DEAE63470494D58B317FF99 /* FocusGremlin.app */;
+			productReference = 866A36932D1955A4A07395F3 /* FocusGremlin.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A78ED20045E04FAD96D5D28C /* FocusGremlinTests */ = {
+		9727F8DC980E047AB802CFAE /* FocusGremlinTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EED70FFD179C4755861B162A /* Build configuration list for PBXNativeTarget "FocusGremlinTests" */;
+			buildConfigurationList = 95507519DF3B464F010E848C /* Build configuration list for PBXNativeTarget "FocusGremlinTests" */;
 			buildPhases = (
-				42B321F5640541E5AE3B9B83 /* Sources */,
-				47EF128A866E422C869B8DDC /* Frameworks */,
+				9D34C22CBC0327FA952B7C2A /* Sources */,
 			);
-			buildRules = ();
+			buildRules = (
+			);
 			dependencies = (
-				C95623D4AC314C02ABC6D5F2 /* PBXTargetDependency */,
+				F3E25F536E47519ED145760C /* PBXTargetDependency */,
 			);
 			name = FocusGremlinTests;
+			packageProductDependencies = (
+			);
 			productName = FocusGremlinTests;
-			productReference = 559A556472C447B4B5060D91 /* FocusGremlinTests.xctest */;
+			productReference = F7EA05D19743CCE560579033 /* FocusGremlinTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		0236B50C5F264563B451F41E /* Project object */ = {
+		4D1F6A509CB207177C3C2A5F /* Project object */ = {
 			isa = PBXProject;
-			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; TargetAttributes = { 3C09D5AEE8284390BF87DA41 = { CreatedOnToolsVersion = 15.0; }; A78ED20045E04FAD96D5D28C = { CreatedOnToolsVersion = 15.0; TestTargetID = 3C09D5AEE8284390BF87DA41; }; }; };
-			buildConfigurationList = 7AEF9F073C634D428BEE5DE4 /* Build configuration list for PBXProject "FocusGremlin" */;
-			compatibilityVersion = "Xcode 14.0";
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					6217F81454991F39C5649E09 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					9727F8DC980E047AB802CFAE = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = B575D464E8B97ECE1594515B /* Build configuration list for PBXProject "FocusGremlin" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				en,
 			);
-			mainGroup = 24E8957E0DFE466CBD6E3BEF;
-			productRefGroup = E29CF6716DC04B8691A49D19 /* Products */;
+			mainGroup = 2060989D2AF7EDF70112D301;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 17A764EE6ECC2AFEA2403247 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3C09D5AEE8284390BF87DA41 /* FocusGremlin */,
-				A78ED20045E04FAD96D5D28C /* FocusGremlinTests */,
+				6217F81454991F39C5649E09 /* FocusGremlin */,
+				9727F8DC980E047AB802CFAE /* FocusGremlinTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		83F394E968F3418DAA7D3652 /* Resources */ = {
+		8E8CBE252512FE0D74E8760E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BADDCAFE000000000000000B /* Assets.xcassets in Resources */,
+				9CDDB66360CB123E6F7293BE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		F65DCD2CFAF948F783DD5491 /* Sources */ = {
+		252D359C8A699A8D8A0BE9AF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BDDFB6C4B9A34AE482943A56 /* FocusGremlinApp.swift in Sources */,
-				38D3A75EC16C4EAF8BE3C098 /* AppDelegate.swift in Sources */,
-				2B661C9FDA9D4884969A4DB0 /* CompanionSession.swift in Sources */,
-				195B24C2C1924759A14F5CB1 /* RootShellView.swift in Sources */,
-				8DDFE9B576574796B7D76AAB /* OverlayPanelController.swift in Sources */,
-				069B0D7885F4480685E1DE66 /* CompanionViewModel.swift in Sources */,
-				429BA78F267947339FEE4AD7 /* CompanionBubbleView.swift in Sources */,
-				BC5E86583AAD486CA0839FC2 /* TypingDotsView.swift in Sources */,
-				6A82CA30A9334B708D0C08A7 /* FocusTypes.swift in Sources */,
-				0CE0A139F10E44E594F9E6F0 /* FocusClassifier.swift in Sources */,
-				82B686F848B441FFA7D7F60E /* InterruptionPolicy.swift in Sources */,
-				D8D309C46E9847B384A4AE77 /* AppSwitchHysteresis.swift in Sources */,
-				FFEA7D4BA417483AA7658BB1 /* ScrollSessionTracker.swift in Sources */,
-				708CDB760B644345ACD40782 /* WindowContextProvider.swift in Sources */,
-				214DC06FDD2A4713B4B774D4 /* ScrollWheelMonitor.swift in Sources */,
-				A80DD6A5B5D54F75B16E4488 /* FocusEngineService.swift in Sources */,
-				3C0070D4F1664032B5E1AC7D /* LLMProvider.swift in Sources */,
-				66248D719A3D48869FB4ACBF /* MockLLMProvider.swift in Sources */,
-				EDB44E202FD9441E8F90CAB3 /* MLXProvider.swift in Sources */,
-				3EC8AF158E9A4C49A9139CE2 /* OllamaProvider.swift in Sources */,
-				77F2D96CFB1B4A93879D0BDE /* GremlinPrompts.swift in Sources */,
-				1223FCF8793E49129E268AAE /* GremlinOrchestrator.swift in Sources */,
-				CC845906072A486B8FDE30CF /* RecentMessageMemory.swift in Sources */,
-				7D0B7F9591D34D7489030122 /* TemplatePhraseBank.swift in Sources */,
-				E45E8D91267E4107BD706E6E /* MessageSelector.swift in Sources */,
-				B298761BFF6B4DD0BB416F3D /* SettingsStore.swift in Sources */,
-				3D767EDEE9BE4524A4756DFF /* SettingsRootView.swift in Sources */,
-				4ADF5DAC2736429780F95BB8 /* OnboardingView.swift in Sources */,
-				C81EAA88813C41188B4BB496 /* PermissionGate.swift in Sources */,
-				8082B53DB716455288687442 /* AppLogger.swift in Sources */,
-				2C3B4B970E89407EAFB87F48 /* FeatureFlags.swift in Sources */,
-				98D012B3C00042B0A76D4A44 /* LoginItemManager.swift in Sources */,
-				BADDCAFE0000000000000003 /* SmartCategoryMerge.swift in Sources */,
-				BADDCAFE0000000000000005 /* ScreenCaptureService.swift in Sources */,
-				BADDCAFE0000000000000007 /* OllamaVisionClassifier.swift in Sources */,
-				BADDCAFE0000000000000009 /* SmartModeController.swift in Sources */,
+				20AA3A1F8FF66D2B35C3DAA2 /* AppDelegate.swift in Sources */,
+				4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */,
+				E5B0D4B959D9C0BB078D7F6B /* AppSwitchHysteresis.swift in Sources */,
+				DC53473A608FA4DE9FED2004 /* CompanionBubbleView.swift in Sources */,
+				32252E82A4BF6F30F54AA209 /* CompanionSession.swift in Sources */,
+				018FB01EB02193AEABA07E2E /* CompanionViewModel.swift in Sources */,
+				BA5016854CDD32BD104CE66E /* FeatureFlags.swift in Sources */,
+				6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */,
+				F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */,
+				87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */,
+				60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */,
+				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
+				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
+				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,
+				C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */,
+				1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */,
+				23A0C012F1E95780129FABEF /* MLXProvider.swift in Sources */,
+				A20D8D39ABA7F37236612112 /* MessageSelector.swift in Sources */,
+				376B54EBD95DE7567A0D6843 /* MockLLMProvider.swift in Sources */,
+				0176605673F0EC5B3435FC0C /* OllamaProvider.swift in Sources */,
+				37CB6B2CD92E13BA2E065A6C /* OllamaVisionClassifier.swift in Sources */,
+				87863A9841AA283D3958631A /* OnboardingView.swift in Sources */,
+				DFA914077AF31666E6FB0CE8 /* OverlayPanelController.swift in Sources */,
+				FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */,
+				1B54D34E1E020C69E54BB19A /* RecentMessageMemory.swift in Sources */,
+				E27EB2F5905380D4295F2BFD /* RootShellView.swift in Sources */,
+				360DFB1DEED27451B27C2EDA /* ScreenCaptureService.swift in Sources */,
+				518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */,
+				C680B0B95B319501F0BE06A5 /* ScrollWheelMonitor.swift in Sources */,
+				0B0FC3FF3E611E3B482A6DB0 /* SettingsRootView.swift in Sources */,
+				5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */,
+				4075F28EF60A028905F26878 /* SmartCategoryMerge.swift in Sources */,
+				534C68CE9D924D6384AEC069 /* SmartModeController.swift in Sources */,
+				67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */,
+				4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */,
+				A4E7D99CBD56BD29D5D64512 /* WindowContextProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		42B321F5640541E5AE3B9B83 /* Sources */ = {
+		9D34C22CBC0327FA952B7C2A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4B463F17D4445209CB1A866 /* FocusGremlinTests.swift in Sources */,
+				938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXContainerItemProxy section */
-		A82DD3BAF6AF4FBE949E9EAE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0236B50C5F264563B451F41E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3C09D5AEE8284390BF87DA41;
-			remoteInfo = FocusGremlin;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXTargetDependency section */
-		C95623D4AC314C02ABC6D5F2 /* PBXTargetDependency */ = {
+		F3E25F536E47519ED145760C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 3C09D5AEE8284390BF87DA41 /* FocusGremlin */;
-			targetProxy = A82DD3BAF6AF4FBE949E9EAE /* PBXContainerItemProxy */;
+			target = 6217F81454991F39C5649E09 /* FocusGremlin */;
+			targetProxy = 3B254B6272B2572C3A3774AA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		9B3CCDBD68B6447081986388 /* Debug */ = {
+		336A73E59ABB277B6B9F17EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FocusGremlin/FocusGremlin.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FocusGremlin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Focus Gremlin;
-				INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity;
+				INFOPLIST_KEY_CFBundleDisplayName = "Focus Gremlin";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.app;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		65BB8ADB6CBD83F0AF48C295 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.app;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		786CE22D445C4AB2975EA97B /* Release */ = {
+		65CFD82B1213AC3C58789B67 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.tests;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FocusGremlin.app/Contents/MacOS/FocusGremlin";
+			};
+			name = Release;
+		};
+		732443BF11B59E7F41EA3B44 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9FA76F5DFA6D5AD193CCF438 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.tests;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FocusGremlin.app/Contents/MacOS/FocusGremlin";
+			};
+			name = Debug;
+		};
+		F31FC56689B5B1136BD9B5CF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FocusGremlin/FocusGremlin.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FocusGremlin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Focus Gremlin;
-				INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity;
+				INFOPLIST_KEY_CFBundleDisplayName = "Focus Gremlin";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.app;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				SWIFT_COMPILATION_MODE = wholemodule;
-			};
-			name = Release;
-		};
-		394B94EC462242DD86667236 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.tests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FocusGremlin.app/Contents/MacOS/FocusGremlin";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 			};
 			name = Debug;
-		};
-		4F9850BD86F3412B8833702E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.focusgremlin.tests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FocusGremlin.app/Contents/MacOS/FocusGremlin";
-			};
-			name = Release;
-		};
-		B265A051124F43B4BC42585C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		C4F87EC4920B4467A2AA7565 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E88F600F8F484CC4A97A9325 /* Build configuration list for PBXNativeTarget FocusGremlin */ = {
+		3736FDCF458E699215F5DB08 /* Build configuration list for PBXNativeTarget "FocusGremlin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9B3CCDBD68B6447081986388 /* Debug */,
-				786CE22D445C4AB2975EA97B /* Release */,
+				F31FC56689B5B1136BD9B5CF /* Debug */,
+				336A73E59ABB277B6B9F17EA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		EED70FFD179C4755861B162A /* Build configuration list for PBXNativeTarget FocusGremlinTests */ = {
+		95507519DF3B464F010E848C /* Build configuration list for PBXNativeTarget "FocusGremlinTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				394B94EC462242DD86667236 /* Debug */,
-				4F9850BD86F3412B8833702E /* Release */,
+				9FA76F5DFA6D5AD193CCF438 /* Debug */,
+				65CFD82B1213AC3C58789B67 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		7AEF9F073C634D428BEE5DE4 /* Build configuration list for PBXProject FocusGremlin */ = {
+		B575D464E8B97ECE1594515B /* Build configuration list for PBXProject "FocusGremlin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B265A051124F43B4BC42585C /* Debug */,
-				C4F87EC4920B4467A2AA7565 /* Release */,
+				65BB8ADB6CBD83F0AF48C295 /* Debug */,
+				732443BF11B59E7F41EA3B44 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 0236B50C5F264563B451F41E /* Project object */;
+	rootObject = 4D1F6A509CB207177C3C2A5F /* Project object */;
 }

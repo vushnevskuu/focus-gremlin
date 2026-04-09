@@ -95,91 +95,98 @@ final class SettingsStore: ObservableObject {
     private let legacyKey = "fg.settings.v1"
 
     private init() {
+        let state: Persisted
+        var didMigrateFromLegacy = false
         if let data = defaults.data(forKey: key),
            let decoded = try? JSONDecoder().decode(Persisted.self, from: data) {
-            apply(decoded)
+            state = decoded
         } else if let data = defaults.data(forKey: legacyKey),
                   let old = try? JSONDecoder().decode(LegacyPersisted.self, from: data) {
-            applyLegacy(old)
+            state = Self.persisted(fromLegacy: old)
             defaults.removeObject(forKey: legacyKey)
-            save()
+            didMigrateFromLegacy = true
         } else {
-            loadDefaults()
+            state = Self.defaultPersisted()
+        }
+
+        agentEnabled = state.agentEnabled
+        toneIntensity = state.toneIntensity
+        language = state.language
+        productiveBundleIDs = state.productiveBundleIDs
+        distractingBundleIDs = state.distractingBundleIDs
+        browserWorkKeywords = state.browserWorkKeywords
+        cooldownSeconds = state.cooldownSeconds
+        maxInterruptionsPerHour = state.maxInterruptionsPerHour
+        distractionSecondsBeforeNudge = state.distractionSecondsBeforeNudge
+        soundEffectsEnabled = state.soundEffectsEnabled
+        startAtLogin = state.startAtLogin
+        smartModeEnabled = state.smartModeEnabled
+        smartVisionConsent = state.smartVisionConsent
+        smartSamplingIntervalSeconds = state.smartSamplingIntervalSeconds
+        smartVisionModel = state.smartVisionModel
+        smartDebugSaveFrames = state.smartDebugSaveFrames
+        ollamaModel = state.ollamaModel
+        ollamaBaseURL = state.ollamaBaseURL
+        useLLMForLines = state.useLLMForLines
+        llmMinIntervalSeconds = state.llmMinIntervalSeconds
+        onboardingCompleted = state.onboardingCompleted
+
+        UserDefaults.standard.set(smartModeEnabled, forKey: "fg.feature.smartVision")
+        if didMigrateFromLegacy {
+            save()
         }
     }
 
-    private func loadDefaults() {
-        agentEnabled = true
-        toneIntensity = .snarky
-        language = .ru
-        productiveBundleIDs = SettingsStore.defaultProductive
-        distractingBundleIDs = SettingsStore.defaultDistracting
-        browserWorkKeywords = ["github", "notion", "linear", "jira", "figma", "docs.google", "stackoverflow"]
-        cooldownSeconds = 90
-        maxInterruptionsPerHour = 8
-        distractionSecondsBeforeNudge = 45
-        soundEffectsEnabled = false
-        startAtLogin = false
-        smartModeEnabled = false
-        smartVisionConsent = false
-        smartSamplingIntervalSeconds = 75
-        smartVisionModel = "llava"
-        smartDebugSaveFrames = false
-        ollamaModel = "llama3.2"
-        ollamaBaseURL = "http://127.0.0.1:11434"
-        useLLMForLines = true
-        llmMinIntervalSeconds = 120
-        onboardingCompleted = false
+    private static func persisted(fromLegacy old: LegacyPersisted) -> Persisted {
+        Persisted(
+            agentEnabled: old.agentEnabled,
+            toneIntensity: old.toneIntensity,
+            language: old.language,
+            productiveBundleIDs: old.productiveBundleIDs,
+            distractingBundleIDs: old.distractingBundleIDs,
+            browserWorkKeywords: old.browserWorkKeywords,
+            cooldownSeconds: old.cooldownSeconds,
+            maxInterruptionsPerHour: old.maxInterruptionsPerHour,
+            distractionSecondsBeforeNudge: old.distractionSecondsBeforeNudge,
+            soundEffectsEnabled: old.soundEffectsEnabled,
+            startAtLogin: old.startAtLogin,
+            smartModeEnabled: old.smartModeEnabled,
+            smartVisionConsent: false,
+            smartSamplingIntervalSeconds: 75,
+            smartVisionModel: "llava",
+            smartDebugSaveFrames: false,
+            ollamaModel: old.ollamaModel,
+            ollamaBaseURL: old.ollamaBaseURL,
+            useLLMForLines: old.useLLMForLines,
+            llmMinIntervalSeconds: old.llmMinIntervalSeconds,
+            onboardingCompleted: old.onboardingCompleted
+        )
     }
 
-    private func apply(_ decoded: Persisted) {
-        agentEnabled = decoded.agentEnabled
-        toneIntensity = decoded.toneIntensity
-        language = decoded.language
-        productiveBundleIDs = decoded.productiveBundleIDs
-        distractingBundleIDs = decoded.distractingBundleIDs
-        browserWorkKeywords = decoded.browserWorkKeywords
-        cooldownSeconds = decoded.cooldownSeconds
-        maxInterruptionsPerHour = decoded.maxInterruptionsPerHour
-        distractionSecondsBeforeNudge = decoded.distractionSecondsBeforeNudge
-        soundEffectsEnabled = decoded.soundEffectsEnabled
-        startAtLogin = decoded.startAtLogin
-        smartModeEnabled = decoded.smartModeEnabled
-        smartVisionConsent = decoded.smartVisionConsent
-        smartSamplingIntervalSeconds = decoded.smartSamplingIntervalSeconds
-        smartVisionModel = decoded.smartVisionModel
-        smartDebugSaveFrames = decoded.smartDebugSaveFrames
-        ollamaModel = decoded.ollamaModel
-        ollamaBaseURL = decoded.ollamaBaseURL
-        useLLMForLines = decoded.useLLMForLines
-        llmMinIntervalSeconds = decoded.llmMinIntervalSeconds
-        onboardingCompleted = decoded.onboardingCompleted
-        UserDefaults.standard.set(smartModeEnabled, forKey: "fg.feature.smartVision")
-    }
-
-    private func applyLegacy(_ old: LegacyPersisted) {
-        agentEnabled = old.agentEnabled
-        toneIntensity = old.toneIntensity
-        language = old.language
-        productiveBundleIDs = old.productiveBundleIDs
-        distractingBundleIDs = old.distractingBundleIDs
-        browserWorkKeywords = old.browserWorkKeywords
-        cooldownSeconds = old.cooldownSeconds
-        maxInterruptionsPerHour = old.maxInterruptionsPerHour
-        distractionSecondsBeforeNudge = old.distractionSecondsBeforeNudge
-        soundEffectsEnabled = old.soundEffectsEnabled
-        startAtLogin = old.startAtLogin
-        smartModeEnabled = old.smartModeEnabled
-        ollamaModel = old.ollamaModel
-        ollamaBaseURL = old.ollamaBaseURL
-        useLLMForLines = old.useLLMForLines
-        llmMinIntervalSeconds = old.llmMinIntervalSeconds
-        onboardingCompleted = old.onboardingCompleted
-        smartVisionConsent = false
-        smartSamplingIntervalSeconds = 75
-        smartVisionModel = "llava"
-        smartDebugSaveFrames = false
-        UserDefaults.standard.set(smartModeEnabled, forKey: "fg.feature.smartVision")
+    private static func defaultPersisted() -> Persisted {
+        Persisted(
+            agentEnabled: true,
+            toneIntensity: .snarky,
+            language: .ru,
+            productiveBundleIDs: SettingsStore.defaultProductive,
+            distractingBundleIDs: SettingsStore.defaultDistracting,
+            browserWorkKeywords: ["github", "notion", "linear", "jira", "figma", "docs.google", "stackoverflow"],
+            cooldownSeconds: 90,
+            maxInterruptionsPerHour: 8,
+            distractionSecondsBeforeNudge: 45,
+            soundEffectsEnabled: false,
+            startAtLogin: false,
+            smartModeEnabled: false,
+            smartVisionConsent: false,
+            smartSamplingIntervalSeconds: 75,
+            smartVisionModel: "llava",
+            smartDebugSaveFrames: false,
+            ollamaModel: "llama3.2",
+            ollamaBaseURL: "http://127.0.0.1:11434",
+            useLLMForLines: true,
+            llmMinIntervalSeconds: 120,
+            onboardingCompleted: false
+        )
     }
 
     private struct Persisted: Codable {

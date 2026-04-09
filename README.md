@@ -16,9 +16,20 @@
 **Альтернатива (CLI):** установлены Homebrew-пакеты `xcodes` и `aria2`. В терминале (интерактивно, с Apple ID):
 `xcodes install 16.3 --select --experimental-unxip`
 
+## Проект Xcode
+
+Файл `FocusGremlin.xcodeproj` **генерируется [XcodeGen](https://github.com/yonaskolb/XcodeGen)** из `project.yml` (совместимость с Xcode 26+). После правок структуры таргетов выполните:
+
+```bash
+brew install xcodegen
+xcodegen generate
+```
+
+Устаревший `gen_pbx.py` можно не использовать, если работаете через XcodeGen.
+
 ## Сборка и запуск
 
-1. Откройте `FocusGremlin.xcodeproj` в **Xcode 15+** (на машине должен быть выбран полный Xcode: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`).
+1. Откройте `FocusGremlin.xcodeproj` в **Xcode** (рекомендуется `xcode-select` на `Xcode.app`, см. `scripts/after_xcode_installed.sh`).
 2. Схема **Focus Gremlin** → Run (`⌘R`).
 3. Тесты: `⌘U` или `xcodebuild -scheme FocusGremlin -destination 'platform=macOS' test`.
 

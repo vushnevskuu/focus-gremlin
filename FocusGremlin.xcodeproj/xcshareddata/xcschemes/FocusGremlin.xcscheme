@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1500"
+   LastUpgradeVersion = "1430"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,9 +15,23 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3C09D5AEE8284390BF87DA41"
+               BlueprintIdentifier = "6217F81454991F39C5649E09"
                BuildableName = "FocusGremlin.app"
                BlueprintName = "FocusGremlin"
+               ReferencedContainer = "container:FocusGremlin.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9727F8DC980E047AB802CFAE"
+               BuildableName = "FocusGremlinTests.xctest"
+               BlueprintName = "FocusGremlinTests"
                ReferencedContainer = "container:FocusGremlin.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -27,20 +42,31 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
-      shouldAutocreateTestPlan = "YES">
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "6217F81454991F39C5649E09"
+            BuildableName = "FocusGremlin.app"
+            BlueprintName = "FocusGremlin"
+            ReferencedContainer = "container:FocusGremlin.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO"
-            parallelizable = "YES">
+            parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A78ED20045E04FAD96D5D28C"
+               BlueprintIdentifier = "9727F8DC980E047AB802CFAE"
                BuildableName = "FocusGremlinTests.xctest"
                BlueprintName = "FocusGremlinTests"
                ReferencedContainer = "container:FocusGremlin.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -56,12 +82,14 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "3C09D5AEE8284390BF87DA41"
+            BlueprintIdentifier = "6217F81454991F39C5649E09"
             BuildableName = "FocusGremlin.app"
             BlueprintName = "FocusGremlin"
             ReferencedContainer = "container:FocusGremlin.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -73,7 +101,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "3C09D5AEE8284390BF87DA41"
+            BlueprintIdentifier = "6217F81454991F39C5649E09"
             BuildableName = "FocusGremlin.app"
             BlueprintName = "FocusGremlin"
             ReferencedContainer = "container:FocusGremlin.xcodeproj">

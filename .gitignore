@@ -1,4 +1,6 @@
 # Xcode / macOS
+*.xcodeproj.bak/
+FocusGremlin.xcodeproj.bak/
 build/
 DerivedData/
 *.xcuserstate
