@@ -2,6 +2,20 @@
 
 Нативное macOS-приложение: плавающий «гремлин» следует за курсором и локально (правила + опционально Ollama) комментирует отвлечения.
 
+## Установка Xcode на чистую систему
+
+Полный **Xcode** (не только Command Line Tools) ставится так:
+
+1. Открой страницу в Mac App Store (уже можно вызвать из терминала):
+   `open macappstore://apps.apple.com/app/xcode/id497799835`
+2. Нажми **Получить / Установить** и дождись окончания загрузки (~10+ ГБ).
+3. После установки выполни:
+   `scripts/after_xcode_installed.sh`  
+   (попросит `sudo` для `xcode-select`, примет лицензию, соберёт и откроет приложение).
+
+**Альтернатива (CLI):** установлены Homebrew-пакеты `xcodes` и `aria2`. В терминале (интерактивно, с Apple ID):
+`xcodes install 16.3 --select --experimental-unxip`
+
 ## Сборка и запуск
 
 1. Откройте `FocusGremlin.xcodeproj` в **Xcode 15+** (на машине должен быть выбран полный Xcode: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`).
