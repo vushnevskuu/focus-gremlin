@@ -13,6 +13,8 @@ final class CompanionViewModel: ObservableObject {
     @Published var phase: BubblePhase = .idle
     @Published var visibleText: String = ""
     @Published var bubbleOpacity: Double = 0
+    /// Метка начала спрайта «улетания» (синхронно с `phase == .dismissing`).
+    @Published private(set) var dismissSpriteStartedAt: Date?
 
     var isBusy: Bool { phase != .idle }
 
@@ -28,6 +30,7 @@ final class CompanionViewModel: ObservableObject {
         phase = .idle
         visibleText = ""
         bubbleOpacity = 0
+        dismissSpriteStartedAt = nil
     }
 
     /// Живой цикл: точки → печать с редким «передумал» → удержание → исчезновение.
@@ -72,11 +75,16 @@ final class CompanionViewModel: ObservableObject {
         try? await Task.sleep(nanoseconds: UInt64.random(in: 4_000_000_000...6_500_000_000))
         if Task.isCancelled { return }
 
+        dismissSpriteStartedAt = Date()
         phase = .dismissing
-        withAnimation(.easeInOut(duration: 0.35)) {
+        // Спрайт «улетания» играет при полной непрозрачности, затем короткое затухание пузырька.
+        let dismissNs = UInt64(GremlinDismissSheet.animationDuration * 1_000_000_000)
+        try? await Task.sleep(nanoseconds: dismissNs)
+        if Task.isCancelled { return }
+        withAnimation(.easeOut(duration: 0.22)) {
             bubbleOpacity = 0
         }
-        try? await Task.sleep(nanoseconds: 380_000_000)
+        try? await Task.sleep(nanoseconds: 240_000_000)
         resetVisuals()
     }
 }

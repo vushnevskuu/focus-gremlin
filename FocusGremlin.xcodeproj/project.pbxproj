@@ -29,6 +29,7 @@
 		60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */; };
 		67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */; };
 		6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */; };
+		706A689AAD4476F268744AF1 /* GremlinDismissSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */; };
 		87863A9841AA283D3958631A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A88B05432F185EDCDD95A2 /* OnboardingView.swift */; };
 		87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */; };
 		938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */; };
@@ -68,6 +69,7 @@
 		2644C4E5619AD2780134182F /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaVisionClassifier.swift; sourceTree = "<group>"; };
 		2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusClassifier.swift; sourceTree = "<group>"; };
+		2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinDismissSpriteView.swift; sourceTree = "<group>"; };
 		325955074560BE90B2D227E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3854F649018FB4932730A208 /* GremlinOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinOrchestrator.swift; sourceTree = "<group>"; };
 		3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 			isa = PBXGroup;
 			children = (
 				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
+				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
 				401567CBCF520536A765E924 /* TypingDotsView.swift */,
 			);
@@ -379,6 +382,7 @@
 				F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */,
 				87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */,
 				60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */,
+				706A689AAD4476F268744AF1 /* GremlinDismissSpriteView.swift in Sources */,
 				44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */,
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,

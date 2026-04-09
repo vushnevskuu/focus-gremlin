@@ -10,7 +10,7 @@ struct CompanionBubbleView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 10) {
-                GremlinAvatar()
+                GremlinAvatar(viewModel: viewModel)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Focus Gremlin")
                         .font(.caption.weight(.semibold))
@@ -51,6 +51,8 @@ struct CompanionBubbleView: View {
 }
 
 private struct GremlinAvatar: View {
+    @ObservedObject var viewModel: CompanionViewModel
+
     private let avatarSize: CGFloat = 38
 
     var body: some View {
@@ -70,7 +72,11 @@ private struct GremlinAvatar: View {
             Circle()
                 .fill(Color(white: 0.12))
                 .padding(2)
-            GremlinIdleSpriteView(size: avatarSize - 4)
+            if viewModel.phase == .dismissing, let t0 = viewModel.dismissSpriteStartedAt {
+                GremlinDismissSpriteView(size: avatarSize - 4, startDate: t0)
+            } else {
+                GremlinIdleSpriteView(size: avatarSize - 4)
+            }
         }
         .frame(width: avatarSize, height: avatarSize)
         .clipShape(Circle())
