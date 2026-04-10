@@ -15,7 +15,7 @@ struct GremlinTalkingCenterSpriteView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinTalkingCenterSheet.fps)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
-            let idx = Int(t * GremlinTalkingCenterSheet.fps) % GremlinTalkingCenterSheet.frameCount
+            let idx = Int(floor(t * GremlinTalkingCenterSheet.fps)) % GremlinTalkingCenterSheet.frameCount
             GremlinStripSpriteFrameView(
                 imageName: "GremlinTalkingCenterSheet",
                 frameIndex: idx,

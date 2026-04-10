@@ -1,10 +1,12 @@
 import SwiftUI
 
-/// Персонаж: кадры из manifest — каждый файл может быть **лентой** из нескольких спрайтов.
+/// Персонаж: кадры из manifest — каждый PNG может быть **горизонтальной лентой** из нескольких спрайтов.
 struct GremlinSpriteCharacterView: View {
     @ObservedObject var viewModel: CompanionViewModel
 
-    private static let resolver: GremlinCharacterAnimationResolver? = try? GremlinCharacterAnimationResolver()
+    private static var resolver: GremlinCharacterAnimationResolver? {
+        GremlinCharacterAnimationResolver.sharedResolver()
+    }
 
     @State private var playbackEpoch = Date()
 
@@ -15,37 +17,53 @@ struct GremlinSpriteCharacterView: View {
     private var sequence: GremlinResolvedFrameSequence? {
         Self.resolver?.resolveFrameSequence(
             phase: viewModel.phase,
-            distractionInterventionActive: viewModel.distractionInterventionActive
+            distractionInterventionActive: viewModel.distractionInterventionActive,
+            workReturnFinalActive: viewModel.workReturnFinalActive,
+            talkingStripFilename: viewModel.activeTalkingStripFilename,
+            idleStripFilename: viewModel.activeIdleStripFilename,
+            streamTailIdleStripFilename: nil,
+            useShortPhraseStream: viewModel.deliveryUsesShortPhraseSprite,
+            deliverySpeechStyle: viewModel.deliverySpeechStyle
         )
     }
 
-    private var sequenceIdentity: String {
-        "\(viewModel.phase)-\(viewModel.distractionInterventionActive)-\(viewModel.typingSpriteEpoch.uuidString)"
+    /// Ключ плеера: метаданные VM + сигнатура кадров — при любой смене фазы/стиля/листа обязателен сброс таймера NSView.
+    private var spritePlaybackIdentity: String {
+        let meta = [
+            "\(viewModel.phase)",
+            "\(viewModel.deliverySpeechStyle)",
+            "idle:\(viewModel.activeIdleStripFilename)",
+            "talk:\(viewModel.activeTalkingStripFilename)",
+            "short:\(viewModel.deliveryUsesShortPhraseSprite)",
+            "div:\(viewModel.distractionInterventionActive)",
+            "wfin:\(viewModel.workReturnFinalActive)",
+            viewModel.typingSpriteEpoch.uuidString
+        ].joined(separator: "|")
+        guard let seq = sequence, seq.frameCount > 0 else {
+            return "empty|\(meta)"
+        }
+        let part = seq.frames.map { "\($0.url.path)#\($0.stripCellIndex)/\($0.stripCellCount)" }.joined(separator: "\u{1e}")
+        let tail = "|tail\(seq.loopTailStartIndex.map(String.init(describing:)) ?? "nil")|tfps\(seq.tailFps.map(String.init(describing:)) ?? "nil")"
+        let body = part + "|fps\(seq.fps)|loop\(seq.loops)\(tail)|h\(displayHeight)"
+        return "\(meta)\u{1e}\(body)"
     }
 
     var body: some View {
         Group {
             if let seq = sequence, seq.frameCount > 0 {
-                if viewModel.isInteractionFocusedOnMainAppWindow {
-                    GremlinDiscreteFrameImageRepresentable(frame: seq.frames[0], displayHeight: displayHeight)
-                        .fixedSize()
-                        .frame(height: displayHeight)
-                } else {
-                    GremlinFrameSequencePlaybackView(
-                        sequence: seq,
-                        displayHeight: displayHeight,
-                        epoch: playbackEpoch
-                    )
-                }
+                GremlinFrameSequencePlaybackView(
+                    sequence: seq,
+                    displayHeight: displayHeight,
+                    epoch: playbackEpoch,
+                    playbackIdentity: spritePlaybackIdentity
+                )
             }
         }
         .frame(height: displayHeight)
         .fixedSize(horizontal: true, vertical: false)
-        .animation(nil, value: sequenceIdentity)
-        .onChange(of: sequenceIdentity) { _, _ in
-            playbackEpoch = Date()
-        }
-        .onChange(of: viewModel.typingSpriteEpoch) { _, _ in
+        .transaction { $0.animation = nil }
+        .animation(nil, value: spritePlaybackIdentity)
+        .onChange(of: spritePlaybackIdentity) { _, _ in
             playbackEpoch = Date()
         }
     }
@@ -55,39 +73,20 @@ private struct GremlinFrameSequencePlaybackView: View {
     let sequence: GremlinResolvedFrameSequence
     var displayHeight: CGFloat
     var epoch: Date
-
-    private var prefetchTaskID: String {
-        sequence.frames.map { "\($0.url.path)#\($0.stripCellIndex)/\($0.stripCellCount)" }.joined(separator: "\u{1e}")
-            + "#\(displayHeight)"
-    }
+    var playbackIdentity: String
 
     var body: some View {
-        TimelineView(.periodic(from: epoch, by: 1.0 / max(sequence.fps, 0.01))) { context in
-            let elapsed = context.date.timeIntervalSince(epoch)
-            let idx = sequence.frameIndex(at: elapsed)
-            let fr = sequence.frames[idx]
-            GremlinDiscreteFrameImageRepresentable(frame: fr, displayHeight: displayHeight)
-                .fixedSize()
-                .frame(height: displayHeight)
-        }
-        .transaction { $0.animation = nil }
-        .task(id: prefetchTaskID) {
-            let warmupFrameCount = min(sequence.frameCount, max(12, Int(ceil(max(sequence.fps, 1)))))
-            let warmupFrames = Array(sequence.frames.prefix(warmupFrameCount))
-            GremlinSpriteThumbnailLoader.prefetch(
-                frames: warmupFrames,
-                displayHeight: displayHeight,
-                priority: .userInitiated
-            )
-
-            if sequence.frameCount > warmupFrameCount {
-                let remainingFrames = Array(sequence.frames.dropFirst(warmupFrameCount))
-                GremlinSpriteThumbnailLoader.prefetch(
-                    frames: remainingFrames,
-                    displayHeight: displayHeight,
-                    priority: .utility
-                )
-            }
-        }
+        GremlinNativeSequencePlayerRepresentable(
+            frames: sequence.frames,
+            fps: sequence.fps,
+            loops: sequence.loops,
+            loopTailStartIndex: sequence.loopTailStartIndex,
+            tailFps: sequence.tailFps,
+            displayHeight: displayHeight,
+            animationEpoch: epoch,
+            playbackIdentity: playbackIdentity
+        )
+        .fixedSize()
+        .frame(height: displayHeight)
     }
 }

@@ -6,7 +6,7 @@ struct FocusClassifier: Sendable {
 
     func classify(_ snapshot: FocusSnapshot) -> FocusCategory {
         let bundle = snapshot.bundleID
-        let title = snapshot.windowTitle?.lowercased() ?? ""
+        let evidence = snapshot.classificationEvidenceText.lowercased()
 
         if configuration.productiveBundleIDs.contains(bundle) {
             return .productive
@@ -16,13 +16,18 @@ struct FocusClassifier: Sendable {
         }
 
         if configuration.browserBundleIDs.contains(bundle) {
-            if matchesAnyKeyword(title, configuration.workTitleKeywords) {
+            if matchesAnyKeyword(evidence, configuration.workTitleKeywords) {
                 return .productive
             }
-            if matchesAnyKeyword(title, configuration.distractionTitleMarkers) {
+            if matchesAnyKeyword(evidence, configuration.distractionTitleMarkers) {
                 return .distracting
             }
             return .neutral
+        }
+
+        // Нативные клиенты (Instagram, TikTok и т.д.): по заголовку окна из Accessibility — bundle часто не в списке «браузеров».
+        if matchesAnyKeyword(evidence, configuration.distractionTitleMarkers) {
+            return .distracting
         }
 
         return .neutral

@@ -2,6 +2,16 @@
 
 Нативное macOS-приложение: плавающий «гремлин» следует за курсором и локально (правила + опционально Ollama) комментирует отвлечения.
 
+## Лендинг (GitHub Pages)
+
+Статическая страница лежит в каталоге [`docs/`](docs/). Чтобы опубликовать сайт:
+
+1. Репозиторий на GitHub → **Settings** → **Pages**.
+2. **Build and deployment** → Source: **Deploy from a branch**.
+3. Branch: `main`, folder: **`/docs`**, Save.
+
+Сайт будет доступен по адресу вида `https://<user>.github.io/focus-gremlin/` (после первого деплоя подставьте свой URL в `docs/index.html` в тегах `canonical` и `og:image`, если имя репозитория другое).
+
 ## Установка Xcode на чистую систему
 
 Полный **Xcode** (не только Command Line Tools) ставится так:

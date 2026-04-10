@@ -66,10 +66,11 @@ final class SmartModeController: ObservableObject {
 
     private func performAnalysis(snapshot: SmartModeSettingsSnapshot) async {
         guard snapshot.smartModeEnabled, snapshot.smartVisionConsent else { return }
+        let captureTarget = ScreenCaptureService.focusedWindowCaptureTarget()
 
         let jpeg: Data?
         jpeg = await Task.detached {
-            ScreenCaptureService.captureMainDisplayJPEG()
+            ScreenCaptureService.captureJPEG(target: captureTarget)
         }.value
 
         guard let jpeg else {

@@ -18,6 +18,7 @@ struct MessageSelector: Sendable {
     }
 
     func registerDelivered(_ text: String, memory: inout RecentMessageMemory) {
-        memory.record(text)
+        let trackSession = !RecentMessageMemory.isLaughOrPureReactionLine(text)
+        memory.record(text, trackAsSessionQuote: trackSession)
     }
 }

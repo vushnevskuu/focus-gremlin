@@ -10,7 +10,8 @@ struct ScrollSessionTracker: Sendable {
         timestamps.removeAll { $0 < cutoff }
     }
 
-    func isHeavyScrolling(threshold: Int = 28, within seconds: TimeInterval = 60, now: Date = Date()) -> Bool {
+    /// Порог ~15–20 событий колеса за минуту обычно уже ощущается как «думскролл»; без монитора ввода счётчик не растёт.
+    func isHeavyScrolling(threshold: Int = 18, within seconds: TimeInterval = 60, now: Date = Date()) -> Bool {
         let cutoff = now.addingTimeInterval(-seconds)
         let count = timestamps.filter { $0 >= cutoff }.count
         return count >= threshold

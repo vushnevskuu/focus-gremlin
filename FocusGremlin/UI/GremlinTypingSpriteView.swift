@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Спрайт «смотрит на курсор слева → на текст справа» во время точек и набора текста.
@@ -17,7 +18,7 @@ struct GremlinTypingSpriteView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinTypingSheet.fps)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
-            let idx = Int(t * GremlinTypingSheet.fps) % GremlinTypingSheet.frameCount
+            let idx = Int(floor(t * GremlinTypingSheet.fps)) % GremlinTypingSheet.frameCount
             GremlinStripSpriteFrameView(
                 imageName: "GremlinTypingSheet",
                 frameIndex: idx,

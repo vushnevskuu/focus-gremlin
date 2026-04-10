@@ -18,7 +18,7 @@ struct GremlinDismissSpriteView: View {
     var body: some View {
         TimelineView(.periodic(from: startDate, by: 1.0 / GremlinDismissSheet.fps)) { context in
             let elapsed = context.date.timeIntervalSince(startDate)
-            let raw = Int(elapsed * GremlinDismissSheet.fps)
+            let raw = Int(floor(elapsed * GremlinDismissSheet.fps))
             let idx = min(max(raw, 0), GremlinDismissSheet.frameCount - 1)
             GremlinStripSpriteFrameView(
                 imageName: "GremlinDismissSheet",

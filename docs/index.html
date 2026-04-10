@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Goblin doomscroller — Focus Gremlin</title>
+  <meta name="description" content="Focus Gremlin: a macOS companion that catches doomscrolling and talks back. Local LLM, optional vision, nasty goblin energy." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="canonical" href="https://vushnevskuu.github.io/focus-gremlin/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Goblin doomscroller — Focus Gremlin" />
+  <meta property="og:description" content="A macOS companion that catches doomscrolling and talks back. Local Ollama, optional screen-aware roasts." />
+  <meta property="og:url" content="https://vushnevskuu.github.io/focus-gremlin/" />
+  <meta property="og:image" content="https://vushnevskuu.github.io/focus-gremlin/assets/goblin-idle.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #1a1a1a;
+      --goblin-green: #0f8a4a;
+      --goblin-green-dim: #0a6d3b;
+      --muted: #5c5c5c;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "DM Sans", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 5rem;
+    }
+    .sprite-wrap {
+      position: relative;
+      max-width: min(90vw, 420px);
+    }
+    .sprite-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.06));
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .sprite-wrap img {
+        animation: idle-float 4.5s ease-in-out infinite;
+      }
+    }
+    @keyframes idle-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    footer.site-footer {
+      padding: 0 1.25rem 2.5rem;
+      text-align: center;
+    }
+    .brand {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.15rem, 3.5vw, 1.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--goblin-green);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .tagline {
+      margin: 0 auto 1.25rem;
+      max-width: 28rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+    }
+    .actions a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .actions a:hover {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .actions a.primary {
+      background: var(--goblin-green);
+      border-color: var(--goblin-green-dim);
+      color: #fff;
+    }
+    .actions a.primary:hover {
+      background: var(--goblin-green-dim);
+      border-color: var(--goblin-green-dim);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="sprite-wrap">
+      <img
+        src="assets/goblin-idle.png"
+        width="320"
+        height="213"
+        alt="Focus Gremlin character idle pose — pixel goblin companion"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </div>
+  </main>
+  <footer class="site-footer">
+    <p class="brand">Goblin doomscroller</p>
+    <p class="tagline">
+      A macOS menu-bar gremlin that spots distraction patterns, optional local vision via Ollama, and roasts your tab rot in five words or less.
+    </p>
+    <nav class="actions" aria-label="Primary links">
+      <a class="primary" href="https://github.com/vushnevskuu/focus-gremlin">View on GitHub</a>
+      <a href="https://github.com/vushnevskuu/focus-gremlin#readme">Readme &amp; setup</a>
+    </nav>
+  </footer>
+</body>
+</html>

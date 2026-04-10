@@ -32,9 +32,10 @@ struct OllamaVisionClassifier: Sendable {
             messages: [
                 .init(role: "user", content: instruction, images: [b64])
             ],
-            stream: false
+            stream: false,
+            options: .init(temperature: 0.08, topP: 0.82, topK: 10, repeatPenalty: 1.05, numPredict: 24)
         )
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try Self.encodeJSON(body)
 
         let (data, response) = try await urlSession.data(for: request)
         guard let http = response as? HTTPURLResponse else {
@@ -57,15 +58,30 @@ struct OllamaVisionClassifier: Sendable {
         return .neutral
     }
 
+    private static func encodeJSON<T: Encodable>(_ value: T) throws -> Data {
+        let enc = JSONEncoder()
+        enc.keyEncodingStrategy = .convertToSnakeCase
+        return try enc.encode(value)
+    }
+
     private struct VisionChatRequest: Encodable {
         var model: String
         var messages: [Message]
         var stream: Bool
+        var options: Options
 
         struct Message: Encodable {
             var role: String
             var content: String
             var images: [String]
+        }
+
+        struct Options: Encodable {
+            var temperature: Double
+            var topP: Double
+            var topK: Int
+            var repeatPenalty: Double
+            var numPredict: Int
         }
     }
 

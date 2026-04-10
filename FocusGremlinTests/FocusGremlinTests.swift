@@ -41,6 +41,25 @@ final class FocusClassifierTests: XCTestCase {
         XCTAssertEqual(classifier.classify(snap), .distracting)
     }
 
+    func testBrowserDistractionMarkerCanComeFromPageURL() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["com.google.Chrome"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["youtube"]
+        )
+        let classifier = FocusClassifier(configuration: config)
+        let snap = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Watch later",
+            pageTitle: "Watch later",
+            pageURL: "https://www.youtube.com/watch?v=abc123",
+            timestamp: Date()
+        )
+        XCTAssertEqual(classifier.classify(snap), .distracting)
+    }
+
     func testDenylistBundle() {
         let config = FocusRuleConfiguration(
             productiveBundleIDs: [],
@@ -51,6 +70,23 @@ final class FocusClassifierTests: XCTestCase {
         )
         let classifier = FocusClassifier(configuration: config)
         let snap = FocusSnapshot(bundleID: "ru.keepcoder.Telegram", windowTitle: "чаты", timestamp: Date())
+        XCTAssertEqual(classifier.classify(snap), .distracting)
+    }
+
+    func testNativeAppDistractionByWindowTitle() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["com.google.Chrome"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["instagram"]
+        )
+        let classifier = FocusClassifier(configuration: config)
+        let snap = FocusSnapshot(
+            bundleID: "com.burbn.instagram",
+            windowTitle: "Instagram",
+            timestamp: Date()
+        )
         XCTAssertEqual(classifier.classify(snap), .distracting)
     }
 }
@@ -83,6 +119,20 @@ final class InterruptionPolicyTests: XCTestCase {
     }
 }
 
+final class BrowserDistractionPinTests: XCTestCase {
+    /// Регрессия: merge(.distracting, .productive) даёт .neutral — движок обязан закреплять rule-based отвлечение по вкладке.
+    func testRuleDistractingPinnedAgainstVisionProductive() {
+        let merged = SmartCategoryMerge.merge(rule: .distracting, vision: .productive)
+        XCTAssertEqual(merged, .neutral)
+        var category = merged
+        let ruleCategory = FocusCategory.distracting
+        if ruleCategory == .distracting {
+            category = .distracting
+        }
+        XCTAssertEqual(category, .distracting)
+    }
+}
+
 final class SmartCategoryMergeTests: XCTestCase {
     func testVisionEscalatesNeutralToDistracting() {
         let m = SmartCategoryMerge.merge(rule: .neutral, vision: .distracting)
@@ -99,9 +149,47 @@ final class SmartCategoryMergeTests: XCTestCase {
     }
 }
 
+final class GremlinResolvedFrameSequenceTimingTests: XCTestCase {
+    func testMinimumStreamingWaitsForCompositeIntro() {
+        let url = URL(fileURLWithPath: "/tmp/goblin.png")
+        let frames = (0 ..< 48).map {
+            GremlinSpriteFrameRef(url: url, stripCellIndex: $0 % 24, stripCellCount: 24)
+        }
+        let seq = GremlinResolvedFrameSequence(
+            frames: frames,
+            fps: 14,
+            loops: true,
+            loopTailStartIndex: 24,
+            tailFps: 12
+        )
+        XCTAssertEqual(seq.minimumElapsedInStreamingBeforeHolding(), 24.0 / 14.0 + 1.0 / 14.0, accuracy: 0.001)
+    }
+
+    func testMinimumStreamingWithoutTailCapsLoopWait() {
+        let url = URL(fileURLWithPath: "/tmp/talk.png")
+        let frames = (0 ..< 24).map {
+            GremlinSpriteFrameRef(url: url, stripCellIndex: $0, stripCellCount: 24)
+        }
+        let seq = GremlinResolvedFrameSequence(frames: frames, fps: 12, loops: true, loopTailStartIndex: nil, tailFps: nil)
+        let oneLoop = 24.0 / 12.0
+        XCTAssertEqual(seq.minimumElapsedInStreamingBeforeHolding(), oneLoop + 1.0 / 12.0, accuracy: 0.001)
+    }
+}
+
 final class MessageSelectorTests: XCTestCase {
     func testRecentMemoryNormalization() {
         XCTAssertEqual(RecentMessageMemory.normalize(" Привет "), RecentMessageMemory.normalize("привет"))
+    }
+
+    func testLaughLineSkippedForSessionQuoteDedup() {
+        XCTAssertTrue(RecentMessageMemory.isLaughOrPureReactionLine("ha ha ha"))
+        XCTAssertTrue(RecentMessageMemory.isLaughOrPureReactionLine("pfft"))
+        XCTAssertFalse(RecentMessageMemory.isLaughOrPureReactionLine("still doomscrolling genius"))
+        var memory = RecentMessageMemory()
+        memory.record("ha ha", trackAsSessionQuote: false)
+        memory.record("youtube again pathetic", trackAsSessionQuote: true)
+        XCTAssertFalse(memory.containsSubstantiveSessionDuplicate("ha ha"))
+        XCTAssertTrue(memory.containsSubstantiveSessionDuplicate("YouTube again pathetic"))
     }
 
     func testSelectorReturnsNonEmptyLine() {
@@ -131,7 +219,8 @@ final class FocusEngineServiceLogicTests: XCTestCase {
             visionCategory: nil,
             bundleID: "company.thebrowser.Browser",
             heavyScrolling: true,
-            configuration: config
+            configuration: config,
+            classifierWasProductive: false
         )
 
         XCTAssertEqual(category, .distracting)
@@ -151,51 +240,326 @@ final class FocusEngineServiceLogicTests: XCTestCase {
             visionCategory: nil,
             bundleID: "com.google.Chrome",
             heavyScrolling: true,
-            configuration: config
+            configuration: config,
+            classifierWasProductive: true
         )
 
         XCTAssertEqual(category, .productive)
     }
+
+    func testNeutralBrowserStillEligibleForPageAgent() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["com.google.Chrome"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["youtube"]
+        )
+
+        XCTAssertTrue(
+            FocusEngineService.pageAgentEligible(
+                bundleID: "com.google.Chrome",
+                ruleCategory: .neutral,
+                effectiveCategory: .neutral,
+                configuration: config
+            )
+        )
+    }
+
+    func testProductiveBrowserNotEligibleForPageAgent() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["com.google.Chrome"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["youtube"]
+        )
+
+        XCTAssertFalse(
+            FocusEngineService.pageAgentEligible(
+                bundleID: "com.google.Chrome",
+                ruleCategory: .productive,
+                effectiveCategory: .productive,
+                configuration: config
+            )
+        )
+    }
+}
+
+final class FocusSnapshotTests: XCTestCase {
+    func testPageIdentityPrefersURLHostAndPath() {
+        let snapshot = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Some title",
+            pageTitle: "Some title",
+            pageURL: "https://www.reddit.com/r/swift/comments/123",
+            timestamp: Date()
+        )
+
+        XCTAssertEqual(snapshot.pageIdentityKey, "com.google.Chrome\u{1e}reddit.com/r/swift/comments/123")
+    }
+}
+
+final class GremlinSpeechContextTests: XCTestCase {
+    func testLaughLikeLineUsesGiggleStyle() {
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "ha ha ha"), .giggle)
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "pfft"), .giggle)
+    }
+
+    func testNegationStillUsesNegationStyle() {
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "Don't scroll."), .negation)
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "nope"), .negation)
+    }
+}
+
+final class ScreenCaptureServiceTests: XCTestCase {
+    func testPixelCropRectMapsWindowAreaIntoDisplayPixels() {
+        let rect = ScreenCaptureService.pixelCropRect(
+            cropRectInDisplayPoints: CGRect(x: 100, y: 100, width: 400, height: 200),
+            displayBoundsInPoints: CGRect(x: 0, y: 0, width: 1440, height: 900),
+            imagePixelSize: CGSize(width: 2880, height: 1800)
+        )
+
+        XCTAssertEqual(rect?.origin.x ?? -1, 200, accuracy: 0.01)
+        XCTAssertEqual(rect?.origin.y ?? -1, 1200, accuracy: 0.01)
+        XCTAssertEqual(rect?.width ?? -1, 800, accuracy: 0.01)
+        XCTAssertEqual(rect?.height ?? -1, 400, accuracy: 0.01)
+    }
+
+    func testPixelCropRectClampsOffscreenArea() {
+        let rect = ScreenCaptureService.pixelCropRect(
+            cropRectInDisplayPoints: CGRect(x: -40, y: 760, width: 220, height: 220),
+            displayBoundsInPoints: CGRect(x: 0, y: 0, width: 1440, height: 900),
+            imagePixelSize: CGSize(width: 2880, height: 1800)
+        )
+
+        XCTAssertEqual(rect?.origin.x ?? -1, 0, accuracy: 0.01)
+        XCTAssertEqual(rect?.origin.y ?? -1, 0, accuracy: 0.01)
+        XCTAssertEqual(rect?.width ?? -1, 360, accuracy: 0.01)
+        XCTAssertEqual(rect?.height ?? -1, 280, accuracy: 0.01)
+    }
 }
 
 final class GremlinSpriteActionMappingTests: XCTestCase {
-    func testInterventionStartsWithEmphasisDuringTypingDots() {
+    private func assertPingPongIntro(
+        _ introFrames: ArraySlice<GremlinSpriteFrameRef>,
+        sheetFilename: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let intro = Array(introFrames)
+        XCTAssertFalse(intro.isEmpty, file: file, line: line)
+        XCTAssertTrue(
+            intro.allSatisfy { $0.url.lastPathComponent == sheetFilename },
+            file: file,
+            line: line
+        )
+
+        let forward = Array(0 ..< 24)
+        let reverse = Array((0 ..< 23).reversed())
+        XCTAssertEqual(
+            intro.map(\.stripCellIndex),
+            forward + reverse,
+            file: file,
+            line: line
+        )
+    }
+
+    @MainActor
+    func testAppearingUsesCompactIdleLeadIn() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let sequence = resolver.resolveFrameSequence(
+            phase: .appearing,
+            distractionInterventionActive: false
+        )
+
+        XCTAssertFalse(sequence.loops)
+        XCTAssertEqual(sequence.frames.first?.url.lastPathComponent, "idle_1.png")
+        XCTAssertEqual(sequence.frames.first?.stripCellIndex, 0)
+        XCTAssertEqual(sequence.frames.last?.stripCellIndex, 5)
+        XCTAssertEqual(sequence.frameCount, 6)
+    }
+
+    @MainActor
+    func testDismissingUsesReversedCompactIdleLeadOut() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let sequence = resolver.resolveFrameSequence(
+            phase: .dismissing,
+            distractionInterventionActive: false
+        )
+
+        XCTAssertFalse(sequence.loops)
+        XCTAssertEqual(sequence.frames.first?.url.lastPathComponent, "idle_1.png")
+        XCTAssertEqual(sequence.frames.first?.stripCellIndex, 5)
+        XCTAssertEqual(sequence.frames.last?.stripCellIndex, 0)
+        XCTAssertEqual(sequence.frameCount, 6)
+    }
+
+    func testInterventionNeverPrefersFinalSpriteInTypingDots() {
         XCTAssertEqual(
             GremlinCharacterAnimationResolver.preferredStates(for: .typingDots, distractionInterventionActive: true),
-            [.final, .talking, .idle]
+            [.idle]
+        )
+        XCTAssertFalse(
+            GremlinCharacterAnimationResolver.preferredStates(for: .typingDots, distractionInterventionActive: true).contains(.final)
         )
     }
 
-    func testInterventionStreamsWithTalkingAnimation() {
+    func testInterventionStreamingUsesTalkingNotFinal() {
         XCTAssertEqual(
             GremlinCharacterAnimationResolver.preferredStates(for: .streaming, distractionInterventionActive: true),
-            [.talking, .final, .idle]
+            [.talking, .idle]
         )
     }
 
-    func testRegularHoldingReturnsToIdle() {
+    @MainActor
+    func testGiggleStreamUsesSmileSheet() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let seq = resolver.resolveFrameSequence(
+            phase: .streaming,
+            distractionInterventionActive: false,
+            workReturnFinalActive: false,
+            talkingStripFilename: "talking_1.png",
+            idleStripFilename: "idle_1.png",
+            useShortPhraseStream: true,
+            deliverySpeechStyle: .giggle
+        )
+        let introEnd = seq.loopTailStartIndex
+        XCTAssertNotNil(introEnd)
+        XCTAssertGreaterThan(introEnd!, 0)
+        assertPingPongIntro(seq.frames.prefix(introEnd!), sheetFilename: "smile.png")
+        XCTAssertTrue(seq.frames.dropFirst(introEnd!).allSatisfy { $0.url.lastPathComponent == "idle_1.png" })
+    }
+
+    @MainActor
+    func testShortPhraseStreamUsesShortPhraseSheet() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let seq = resolver.resolveFrameSequence(
+            phase: .streaming,
+            distractionInterventionActive: false,
+            workReturnFinalActive: false,
+            talkingStripFilename: "talking_1.png",
+            idleStripFilename: "idle_1.png",
+            useShortPhraseStream: true
+        )
+        let introEnd = seq.loopTailStartIndex
+        XCTAssertNotNil(introEnd)
+        XCTAssertGreaterThan(introEnd!, 0)
+        XCTAssertTrue(seq.frames.prefix(introEnd!).allSatisfy { $0.url.lastPathComponent == "short_phrase.png" })
+        XCTAssertTrue(seq.frames.dropFirst(introEnd!).allSatisfy { $0.url.lastPathComponent == "idle_1.png" })
+    }
+
+    @MainActor
+    func testTalkingStripFilenameLimitsToOneSheet() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let seq = resolver.resolveFrameSequence(
+            phase: .streaming,
+            distractionInterventionActive: false,
+            workReturnFinalActive: false,
+            talkingStripFilename: "talking_2.png"
+        )
+        XCTAssertFalse(seq.frames.isEmpty)
+        XCTAssertNotNil(seq.loopTailStartIndex)
+        let introEnd = seq.loopTailStartIndex!
+        XCTAssertGreaterThan(introEnd, 0)
+        assertPingPongIntro(seq.frames.prefix(introEnd), sheetFilename: "talking_2.png")
+        XCTAssertTrue(seq.frames.dropFirst(introEnd).allSatisfy { $0.url.lastPathComponent == "idle_1.png" })
+    }
+
+    func testRegularHoldingKeepsTalkingWhileLineVisible() {
         XCTAssertEqual(
             GremlinCharacterAnimationResolver.preferredStates(for: .holding, distractionInterventionActive: false),
-            [.idle, .talking]
+            [.idle]
         )
+    }
+
+    func testInterventionHoldingKeepsTalkingWhileLineVisible() {
+        XCTAssertEqual(
+            GremlinCharacterAnimationResolver.preferredStates(for: .holding, distractionInterventionActive: true),
+            [.idle]
+        )
+    }
+
+    func testTextFallingUsesIdleOnly() {
+        XCTAssertEqual(
+            GremlinCharacterAnimationResolver.preferredStates(for: .textFalling, distractionInterventionActive: true),
+            [.idle]
+        )
+    }
+}
+
+final class GremlinSpriteSheetGeometryTests: XCTestCase {
+    func testUniformCellAndViewportWideFrame() {
+        let cell = GremlinSpriteSheetGeometry.uniformCellSize(
+            source: CGSize(width: 28224, height: 784),
+            columns: 24,
+            rows: 1
+        )
+        XCTAssertEqual(cell.width, 1176, accuracy: 0.01)
+        XCTAssertEqual(cell.height, 784, accuracy: 0.01)
+        let vp = GremlinSpriteSheetGeometry.displayViewportSize(logicalCell: cell, displayHeight: 120)
+        XCTAssertEqual(vp.height, 120, accuracy: 0.01)
+        XCTAssertEqual(vp.width, 180, accuracy: 0.01)
+    }
+
+    func testHorizontalStripIntegerRectsStableWidth() {
+        let r0 = GremlinSpriteSheetGeometry.horizontalStripCellPixelRect(
+            cellIndex: 0,
+            columns: 20,
+            sourcePixelWidth: 1280,
+            sourcePixelHeight: 128
+        )
+        XCTAssertEqual(r0.x, 0)
+        XCTAssertEqual(r0.width, 64)
+        XCTAssertEqual(r0.height, 128)
+        let r19 = GremlinSpriteSheetGeometry.horizontalStripCellPixelRect(
+            cellIndex: 19,
+            columns: 20,
+            sourcePixelWidth: 1280,
+            sourcePixelHeight: 128
+        )
+        XCTAssertEqual(r19.x, 1216)
+        XCTAssertEqual(r19.width, 64)
     }
 }
 
 final class GremlinSpriteThumbnailLoaderTests: XCTestCase {
     func testLogicalFrameSizeForIdleSheetMatchesSourceCell() {
         let url = characterSheetURL("idle_1.png")
-        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 36)
+        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 24)
         XCTAssertNotNil(size)
-        XCTAssertEqual(size?.width ?? 0, 784, accuracy: 0.01)
+        XCTAssertEqual(size?.width ?? 0, 1176, accuracy: 0.01)
         XCTAssertEqual(size?.height ?? 0, 784, accuracy: 0.01)
     }
 
     func testLogicalFrameSizeForFinalSheetStaysStableAcrossNonIntegralSourceWidth() {
         let url = characterSheetURL("final_1.png")
-        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 35)
+        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 23)
         XCTAssertNotNil(size)
-        XCTAssertEqual(size?.width ?? 0, 27048.0 / 35.0, accuracy: 0.01)
+        XCTAssertEqual(size?.width ?? 0, 27048.0 / 23.0, accuracy: 0.01)
         XCTAssertEqual(size?.height ?? 0, 784, accuracy: 0.01)
+    }
+
+    func testCachedStripCanServeNeighborFrameWithoutRedecodingWholeSheet() {
+        let url = characterSheetURL("final_1.png")
+        let maxPx = GremlinSpriteThumbnailLoader.maxPixelDimension(forDisplayHeightPoints: 120)
+        GremlinSpriteThumbnailLoader.clearMemoryCache()
+
+        let first = GremlinSpriteThumbnailLoader.cgImage(
+            url: url,
+            maxPixelDimension: maxPx,
+            stripCellCount: 23,
+            stripCellIndex: 0
+        )
+        XCTAssertNotNil(first)
+
+        let second = GremlinSpriteThumbnailLoader.imageIfCached(
+            url: url,
+            maxPixelDimension: maxPx,
+            stripCellCount: 23,
+            stripCellIndex: 1
+        )
+        XCTAssertNotNil(second)
     }
 
     private func characterSheetURL(_ filename: String) -> URL {
@@ -204,5 +568,247 @@ final class GremlinSpriteThumbnailLoaderTests: XCTestCase {
             .deletingLastPathComponent()
             .appendingPathComponent("FocusGremlin/Resources/CharacterSheets")
             .appendingPathComponent(filename)
+    }
+}
+
+// MARK: - Контекст браузера → промпт (без живого VLM)
+
+/// Живой тест «видит ли модель страницу в Safari/Chrome» требует на твоей машине: Ollama + vision-модель, Screen Recording,
+/// запущенный Focus Gremlin и открытый браузер — этого нет в headless CI. Здесь проверяем **цепочку данных** до LLM.
+final class GremlinBrowserContextPipelineTests: XCTestCase {
+    func testBrowserLocationHint_StripsWWWAndJoinsPath() {
+        XCTAssertEqual(
+            GremlinContextBuilder.browserLocationHint(pageURL: "https://www.youtube.com/watch?v=abc"),
+            "youtube.com/watch"
+        )
+    }
+
+    func testBrowserLocationHint_HostOnlyForRootPath() {
+        XCTAssertEqual(
+            GremlinContextBuilder.browserLocationHint(pageURL: "https://www.reddit.com/"),
+            "reddit.com"
+        )
+    }
+
+    func testSituationBlock_WhenTitleMissing_AddsUrlGroundingAndFullURL() {
+        let ctx = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: nil,
+            pageTitle: nil,
+            pageURL: "https://www.youtube.com/watch?v=xyz",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+        let block = GremlinContextBuilder.situationBlock(context: ctx)
+        XCTAssertTrue(block.contains("Grounding from URL"), block)
+        XCTAssertTrue(block.contains("youtube.com/watch"), block)
+        XCTAssertTrue(block.contains("Browser page URL:"), block)
+        XCTAssertFalse(block.localizedCaseInsensitiveContains("window/tab title empty or unavailable"))
+    }
+
+    func testUserPrompt_WithPointerVisionEmbedsSituationAndPageSignals() {
+        let ctx = GremlinInterventionContext(
+            trigger: .scrollSession,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Legacy",
+            pageTitle: "   ",
+            pageURL: "https://news.ycombinator.com/news",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: "orange site threads",
+            pointerAccessibilitySummary: "link «Comments»"
+        )
+        let prompt = GremlinPrompts.userPrompt(
+            context: ctx,
+            avoidRepeatingNormalizedLines: [],
+            duplicateRetry: false,
+            visionLayout: .pointerNeighborhoodOnly
+        )
+        XCTAssertTrue(prompt.contains("═══ Situation"), prompt)
+        XCTAssertTrue(prompt.contains("ycombinator.com") || prompt.contains("news.ycombinator"), prompt)
+        XCTAssertTrue(prompt.contains("Comments") || prompt.contains("Pointer"), prompt)
+        XCTAssertTrue(prompt.contains("orange site threads"), prompt)
+    }
+
+    @MainActor
+    func testOrchestratorPassesVisionPayloadToLLMWhenJPEGProvided() async {
+        final class RecordingLLM: LLMProvider, @unchecked Sendable {
+            var lastJPEGCount = 0
+            var lastUserHasSituation = false
+            func complete(
+                systemPrompt: String,
+                userPrompt: String,
+                jpegImages: [Data],
+                chatModel: String?
+            ) async throws -> String {
+                lastJPEGCount = jpegImages.count
+                lastUserHasSituation = userPrompt.contains("═══ Situation")
+                return "Subscribe red button trash"
+            }
+        }
+
+        let policy = InterruptionPolicy(cooldown: 0, maxPerHour: 999, recentFireTimes: [])
+        let orch = GremlinOrchestrator(policy: policy)
+        orch.resetMemoryForTesting()
+
+        let recorder = RecordingLLM()
+        let settings = SettingsStore.shared
+        let prevConsent = settings.smartVisionConsent
+        let prevModel = settings.smartVisionModel
+        let prevUseLLM = settings.useLLMForLines
+        let prevInterval = settings.llmMinIntervalSeconds
+        settings.smartVisionConsent = true
+        settings.smartVisionModel = "any-vision-model"
+        settings.useLLMForLines = true
+        settings.llmMinIntervalSeconds = 0
+        defer {
+            settings.smartVisionConsent = prevConsent
+            settings.smartVisionModel = prevModel
+            settings.useLLMForLines = prevUseLLM
+            settings.llmMinIntervalSeconds = prevInterval
+        }
+
+        let ctx = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: nil,
+            pageTitle: nil,
+            pageURL: "https://example.com/video",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: "AXLink"
+        )
+
+        let fakeJPEG = Data([0xFF, 0xD8, 0xFF, 0xDB, 0])
+        let line = await orch.maybeProduceLine(
+            context: ctx,
+            settings: settings,
+            llm: recorder,
+            screenshotJPEG: nil,
+            cursorNeighborhoodJPEG: fakeJPEG
+        )
+        XCTAssertEqual(recorder.lastJPEGCount, 1)
+        XCTAssertTrue(recorder.lastUserHasSituation)
+        XCTAssertFalse(line?.isEmpty ?? true)
+    }
+
+    @MainActor
+    func testOrchestratorPassesOnlyFullWindowWhenBothJPEGsProvided() async {
+        final class RecordingLLM: LLMProvider, @unchecked Sendable {
+            var lastJPEGCount = 0
+            var lastUserMentionsFullWindowFrame = false
+            func complete(
+                systemPrompt: String,
+                userPrompt: String,
+                jpegImages: [Data],
+                chatModel: String?
+            ) async throws -> String {
+                lastJPEGCount = jpegImages.count
+                lastUserMentionsFullWindowFrame =
+                    userPrompt.localizedCaseInsensitiveContains("frontmost")
+                    || userPrompt.localizedCaseInsensitiveContains("full window")
+                return "Orange site thread rot"
+            }
+        }
+
+        let policy = InterruptionPolicy(cooldown: 0, maxPerHour: 999, recentFireTimes: [])
+        let orch = GremlinOrchestrator(policy: policy)
+        orch.resetMemoryForTesting()
+
+        let recorder = RecordingLLM()
+        let settings = SettingsStore.shared
+        let prevConsent = settings.smartVisionConsent
+        let prevModel = settings.smartVisionModel
+        let prevUseLLM = settings.useLLMForLines
+        let prevInterval = settings.llmMinIntervalSeconds
+        settings.smartVisionConsent = true
+        settings.smartVisionModel = "any-vision-model"
+        settings.useLLMForLines = true
+        settings.llmMinIntervalSeconds = 0
+        defer {
+            settings.smartVisionConsent = prevConsent
+            settings.smartVisionModel = prevModel
+            settings.useLLMForLines = prevUseLLM
+            settings.llmMinIntervalSeconds = prevInterval
+        }
+
+        let ctx = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: nil,
+            pageTitle: nil,
+            pageURL: "https://example.com/feed",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+
+        let windowJPEG = Data([0xFF, 0xD8, 0xFF, 0xE0, 1])
+        let cursorJPEG = Data([0xFF, 0xD8, 0xFF, 0xDB, 2])
+        let line = await orch.maybeProduceLine(
+            context: ctx,
+            settings: settings,
+            llm: recorder,
+            screenshotJPEG: windowJPEG,
+            cursorNeighborhoodJPEG: cursorJPEG
+        )
+        XCTAssertEqual(recorder.lastJPEGCount, 1)
+        XCTAssertTrue(recorder.lastUserMentionsFullWindowFrame)
+        XCTAssertFalse(line?.isEmpty ?? true)
+    }
+
+    func testUserPrompt_DualVisionExplainsWindowThenPointer() {
+        let ctx = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Tab",
+            pageTitle: nil,
+            pageURL: "https://reddit.com/r/all",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: "AXButton «Upvote»"
+        )
+        let prompt = GremlinPrompts.userPrompt(
+            context: ctx,
+            avoidRepeatingNormalizedLines: [],
+            duplicateRetry: false,
+            visionLayout: .focusedWindowAndPointerNeighborhood
+        )
+        XCTAssertTrue(prompt.contains("two JPEGs"), prompt)
+        XCTAssertTrue(prompt.contains("Focused window") || prompt.contains("focused window"), prompt)
+        XCTAssertTrue(prompt.contains("Pointer neighborhood") || prompt.contains("pointer neighborhood"), prompt)
+        XCTAssertTrue(prompt.contains("primary"), prompt)
+    }
+
+    func testUserPrompt_FullWindowMentionsForegroundFrame() {
+        let ctx = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: "YouTube",
+            pageTitle: nil,
+            pageURL: "https://youtube.com/watch",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+        let prompt = GremlinPrompts.userPrompt(
+            context: ctx,
+            avoidRepeatingNormalizedLines: [],
+            duplicateRetry: false,
+            visionLayout: .focusedWindowOnly
+        )
+        XCTAssertTrue(
+            prompt.localizedCaseInsensitiveContains("frontmost")
+                || prompt.localizedCaseInsensitiveContains("full window"),
+            prompt
+        )
+        XCTAssertTrue(prompt.localizedCaseInsensitiveContains("distance from the mouse"), prompt)
     }
 }

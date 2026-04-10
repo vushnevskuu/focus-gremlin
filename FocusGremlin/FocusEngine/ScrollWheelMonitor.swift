@@ -6,6 +6,9 @@ final class ScrollWheelMonitor {
     private var monitor: Any?
     private let handler: () -> Void
 
+    /// `false`, если нет прав «Мониторинг ввода» / глобальный монитор не создан — тогда doomscroll на нейтральных вкладках почти не детектится.
+    var hasActiveGlobalMonitor: Bool { monitor != nil }
+
     init(handler: @escaping () -> Void) {
         self.handler = handler
     }
@@ -18,6 +21,11 @@ final class ScrollWheelMonitor {
         if monitor == nil {
             AppLogger.focus.debug("Глобальный монитор скролла недоступен — проверьте Accessibility / Input Monitoring.")
         }
+    }
+
+    /// После выдачи прав или возврата в приложение монитор иногда нужно заново повесить.
+    func restart() {
+        start()
     }
 
     func stop() {

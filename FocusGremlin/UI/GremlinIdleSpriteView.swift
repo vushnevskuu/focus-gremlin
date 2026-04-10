@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Высота одного кадра гремлина на оверлее (ширина из пропорций спрайт-листа).
@@ -20,6 +21,9 @@ struct GremlinStripSpriteFrameView: View {
         let cellH = pixelHeight
         let s = displayHeight / cellH
         let cellDisplayW = cellW * s
+        let bs = NSScreen.main?.backingScaleFactor ?? 2
+        let snappedW = GremlinSpriteSheetGeometry.snapPointsToPixelGrid(cellDisplayW, backingScale: bs)
+        let snappedH = GremlinSpriteSheetGeometry.snapPointsToPixelGrid(displayHeight, backingScale: bs)
 
         GremlinSpriteStripRepresentable(
             imageName: imageName,
@@ -27,7 +31,7 @@ struct GremlinStripSpriteFrameView: View {
             frameCount: frameCount,
             displayHeight: displayHeight
         )
-        .frame(width: cellDisplayW, height: displayHeight)
+        .frame(width: snappedW, height: snappedH)
         .transaction { $0.animation = nil }
     }
 }
@@ -48,7 +52,7 @@ struct GremlinIdleSpriteView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0 / GremlinIdleSheet.fps)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
-            let idx = Int(t * GremlinIdleSheet.fps) % GremlinIdleSheet.frameCount
+            let idx = Int(floor(t * GremlinIdleSheet.fps)) % GremlinIdleSheet.frameCount
             GremlinStripSpriteFrameView(
                 imageName: "GremlinIdleSheet",
                 frameIndex: idx,

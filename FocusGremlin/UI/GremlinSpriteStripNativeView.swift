@@ -17,6 +17,7 @@ final class GremlinSpriteStripDrawingView: NSView {
         wantsLayer = true
         layer?.isOpaque = false
         layer?.backgroundColor = NSColor.clear.cgColor
+        layerContentsRedrawPolicy = .onSetNeedsDisplay
     }
 
     required init?(coder: NSCoder) {
@@ -24,6 +25,7 @@ final class GremlinSpriteStripDrawingView: NSView {
         wantsLayer = true
         layer?.isOpaque = false
         layer?.backgroundColor = NSColor.clear.cgColor
+        layerContentsRedrawPolicy = .onSetNeedsDisplay
     }
 
     func configure(
@@ -73,12 +75,14 @@ final class GremlinSpriteStripDrawingView: NSView {
         guard ih > 0, frameCount > 0 else { return }
 
         let idx = min(max(frameIndex, 0), frameCount - 1)
-        let frameWIdeal = CGFloat(iw) / CGFloat(frameCount)
-        let sx = Int(floor(CGFloat(idx) * frameWIdeal))
-        let nextStart = idx + 1 < frameCount ? Int(floor(CGFloat(idx + 1) * frameWIdeal)) : iw
-        let cw = max(1, nextStart - sx)
+        let rect = GremlinSpriteSheetGeometry.horizontalStripCellPixelRect(
+            cellIndex: idx,
+            columns: frameCount,
+            sourcePixelWidth: iw,
+            sourcePixelHeight: ih
+        )
 
-        guard let part = cgFull.cropping(to: CGRect(x: sx, y: 0, width: cw, height: ih))
+        guard let part = cgFull.cropping(to: CGRect(x: rect.x, y: rect.y, width: rect.width, height: rect.height))
         else { return }
 
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
@@ -89,11 +93,21 @@ final class GremlinSpriteStripDrawingView: NSView {
         // Режим `.screen` для «вычитания» чёрного портит нормальные ассеты с альфой.
         ctx.setBlendMode(.normal)
         ctx.interpolationQuality = .none
+        ctx.setAllowsAntialiasing(false)
+        ctx.setShouldAntialias(false)
 
         let r = bounds
+        let bs = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2
+        let scale = r.height / CGFloat(ih)
+        var dw = CGFloat(rect.width) * scale
+        var dh = r.height
+        var dx = max(0, (r.width - dw) * 0.5)
+        dx = GremlinSpriteSheetGeometry.snapPointsToPixelGrid(dx, backingScale: bs)
+        dw = GremlinSpriteSheetGeometry.snapPointsToPixelGrid(dw, backingScale: bs)
+        dh = GremlinSpriteSheetGeometry.snapPointsToPixelGrid(dh, backingScale: bs)
         ctx.translateBy(x: 0, y: r.height)
         ctx.scaleBy(x: 1, y: -1)
-        ctx.draw(part, in: CGRect(x: 0, y: 0, width: r.width, height: r.height))
+        ctx.draw(part, in: CGRect(x: dx, y: 0, width: dw, height: dh))
     }
 }
 

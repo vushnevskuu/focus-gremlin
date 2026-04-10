@@ -6,6 +6,7 @@ struct SettingsRootView: View {
     /// Обновляется только по кнопке и при первом появлении — без опроса TCC на каждый кадр SwiftUI.
     @State private var axGrantedSnapshot = false
     @State private var screenGrantedSnapshot = false
+    @State private var scrollMonitorActiveSnapshot = false
     @State private var lastActivePermissionRefresh = Date.distantPast
 
     var body: some View {
@@ -24,13 +25,13 @@ struct SettingsRootView: View {
             }
 
             Section("Лимиты") {
-                Stepper(value: $settings.cooldownSeconds, in: 20...600, step: 5) {
+                Stepper(value: $settings.cooldownSeconds, in: 8...600, step: 1) {
                     Text("Кулдаун: \(Int(settings.cooldownSeconds)) с")
                 }
-                Stepper(value: $settings.maxInterruptionsPerHour, in: 1...30) {
+                Stepper(value: $settings.maxInterruptionsPerHour, in: 1...60) {
                     Text("Макс. вмешательств в час: \(settings.maxInterruptionsPerHour)")
                 }
-                Stepper(value: $settings.distractionSecondsBeforeNudge, in: 10...600, step: 5) {
+                Stepper(value: $settings.distractionSecondsBeforeNudge, in: 8...600, step: 1) {
                     Text("Порог отвлечения: \(Int(settings.distractionSecondsBeforeNudge)) с")
                 }
             }
@@ -65,9 +66,25 @@ struct SettingsRootView: View {
                 Toggle("Использовать LLM для фраз", isOn: $settings.useLLMForLines)
                 TextField("Базовый URL", text: $settings.ollamaBaseURL)
                 TextField("Модель", text: $settings.ollamaModel)
-                Stepper(value: $settings.llmMinIntervalSeconds, in: 30...900, step: 15) {
+                Stepper(value: $settings.llmMinIntervalSeconds, in: 1...900, step: 1) {
                     Text("Мин. интервал LLM: \(Int(settings.llmMinIntervalSeconds)) с")
                 }
+                Text(settings.gremlinLLMDiagnosticLine)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Проверить соединение с Ollama") {
+                    Task { await settings.runGremlinOllamaSmokeTest() }
+                }
+                Text("Повторяющиеся короткие фразы обычно значат: не запущен `ollama serve`, нет модели (`ollama pull …`) или неверное имя в поле «Модель».")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("Отладка: логировать пайплайн LLM в Console", isOn: $settings.gremlinPipelineDebugLogging)
+                Text("Console.app → фильтр по bundle id приложения и `category:llm` — размер JPEG, URL-hint, фрагмент user-промпта.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             Section("Система") {
@@ -92,7 +109,7 @@ struct SettingsRootView: View {
                             refreshPermissionSnapshots()
                         }
                     }
-                Stepper(value: $settings.smartSamplingIntervalSeconds, in: 35...240, step: 5) {
+                Stepper(value: $settings.smartSamplingIntervalSeconds, in: 25...240, step: 5) {
                     Text("Интервал семплинга: \(Int(settings.smartSamplingIntervalSeconds)) с")
                 }
                 TextField("Vision-модель Ollama", text: $settings.smartVisionModel)
@@ -107,7 +124,7 @@ struct SettingsRootView: View {
                 Button("Настройки → Запись экрана") {
                     PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
                 }
-                Text("Нужна vision-модель (`ollama pull llava` и т.п.). Кадры по умолчанию не пишутся на диск.")
+                Text("Нужна vision-модель (`ollama pull llava` и т.п.). При согласии гоблин при вмешательстве делает **свежий** кадр и шлёт его в эту же модель — реплика опирается на экран, а не только на заголовок окна. Кадры по умолчанию не пишутся на диск.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -126,12 +143,27 @@ struct SettingsRootView: View {
                     Text(axGrantedSnapshot ? "Включено" : "Нужно для заголовка окна")
                         .foregroundStyle(axGrantedSnapshot ? .green : .orange)
                 }
+                LabeledContent("Мониторинг ввода") {
+                    Text(
+                        scrollMonitorActiveSnapshot
+                            ? "Скролл детектируется"
+                            : "Нужен для doomscroll в браузере (глобальный скролл)"
+                    )
+                    .foregroundStyle(scrollMonitorActiveSnapshot ? .green : .orange)
+                }
                 LabeledContent("Запись экрана") {
-                    Text(screenGrantedSnapshot ? "Разрешено" : "Нужно для Smart Mode (открой настройки ниже)")
-                        .foregroundStyle(screenGrantedSnapshot ? .green : .orange)
+                    Text(
+                        screenGrantedSnapshot
+                            ? "Разрешено"
+                            : "Только для Smart Mode; базовый режим в браузере работает без этого"
+                    )
+                    .foregroundStyle(screenGrantedSnapshot ? .green : .secondary)
                 }
                 Button("Открыть: Accessibility") {
                     PermissionGate.openPrivacyPane(anchor: "Accessibility")
+                }
+                Button("Открыть: Мониторинг ввода") {
+                    PermissionGate.openInputMonitoringPane()
                 }
                 Button("Открыть: Запись экрана") {
                     PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
@@ -140,7 +172,7 @@ struct SettingsRootView: View {
                     refreshPermissionSnapshots()
                 }
                 Text(
-                    "Статус обновляется при открытии этого окна и при возврате в приложение. Если в «Настройки → Конфиденциальность» доступ уже включён, а строка всё ещё оранжевая — нажми «Обновить статус» или перезапусти приложение (для другой копии .app нужен отдельный переключатель в списке)."
+                    "Оранжевая «Запись экрана» не ломает базовый режим. Если в браузере «тишина», чаще всего не включён мониторинг ввода (скролл) или заголовок вкладки без маркеров отвлечения — тогда жди порог секунд «нейтрального» браузера в настройках. Статус обновляется при открытии окна и возврате в приложение; при смене прав — «Обновить статус» или перезапуск."
                 )
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -161,5 +193,10 @@ struct SettingsRootView: View {
     private func refreshPermissionSnapshots() {
         axGrantedSnapshot = PermissionGate.accessibilityTrusted
         screenGrantedSnapshot = PermissionGate.screenRecordingPreflightGranted
+        scrollMonitorActiveSnapshot = CompanionSession.focusEngine?.isGlobalScrollMonitorActive ?? false
+        if !scrollMonitorActiveSnapshot, SettingsStore.shared.agentEnabled {
+            CompanionSession.focusEngine?.restartScrollMonitorIfNeeded()
+            scrollMonitorActiveSnapshot = CompanionSession.focusEngine?.isGlobalScrollMonitorActive ?? false
+        }
     }
 }

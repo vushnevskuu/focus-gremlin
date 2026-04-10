@@ -1,4 +1,5 @@
 import AppKit
+import QuartzCore
 import SwiftUI
 
 /// Плавающая `NSPanel`: все Spaces, неактивируемая, клики проходят сквозь оверлей.
@@ -9,11 +10,9 @@ final class OverlayPanelController: NSObject {
     let viewModel: CompanionViewModel
 
     private var smoothedLocation: CGPoint = .zero
-    private var hasLocation = false
     private var windowFocusObservers: [NSObjectProtocol] = []
-    /// Верх панели в координатах экрана (Y снизу), чтобы при росте текста голова не «уезжала» вверх.
-    private var lockedPanelTopY: CGFloat?
-    private var lastPinCursor: CGPoint = .zero
+    /// Верх панели (origin.y + height) для якорения при скачке высоты текста.
+    private var lastPanelTopY: CGFloat?
     private var lastLaidOutHeight: CGFloat = 0
 
     private var cachedContentSize = NSSize(width: 0, height: 0)
@@ -36,7 +35,8 @@ final class OverlayPanelController: NSObject {
 
         super.init()
 
-        panel.level = .floating
+        // Выше обычных окон (в т.ч. часть полноэкранных клиентов вроде Instagram), но ниже screenSaver.
+        panel.level = .mainMenu
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -96,9 +96,9 @@ final class OverlayPanelController: NSObject {
     func snapPanelToCursorNow() {
         let mouse = NSEvent.mouseLocation
         smoothedLocation = mouse
-        hasLocation = true
         cachedContentSize = .zero
         lastMeasuredTextCount = -1
+        lastPanelTopY = nil
         layoutPanelAtSmoothedCursor()
     }
 
@@ -106,16 +106,9 @@ final class OverlayPanelController: NSObject {
         updateMainWindowInteractionFlag()
         guard !viewModel.isInteractionFocusedOnMainAppWindow else { return }
 
+        // Без сглаживания: позиция панели = текущий курсор (минимальная задержка).
         let mouse = NSEvent.mouseLocation
-        if !hasLocation {
-            smoothedLocation = mouse
-            hasLocation = true
-        } else {
-            // Выше частота тика → чуть сильнее сглаживание за кадр, чтобы не «нырял» за курсором.
-            let t: CGFloat = 0.32
-            smoothedLocation.x += (mouse.x - smoothedLocation.x) * t
-            smoothedLocation.y += (mouse.y - smoothedLocation.y) * t
-        }
+        smoothedLocation = mouse
         layoutPanelAtSmoothedCursor()
     }
 
@@ -132,7 +125,7 @@ final class OverlayPanelController: NSObject {
         let textCount = viewModel.visibleText.count
         let phaseChanged = phase != lastMeasuredPhase
         let textChanged = textCount != lastMeasuredTextCount
-        let bubbleUp = viewModel.bubbleOpacity > 0.05 || viewModel.isBusy
+        let bubbleUp = viewModel.bubbleOpacity > 0.05 || viewModel.isBusy || viewModel.shouldShowCompanionSprite
         let elapsed = now - lastSizeMeasureUptime
 
         var needMeasure = phaseChanged || textChanged || cachedContentSize.width < 1
@@ -156,23 +149,19 @@ final class OverlayPanelController: NSObject {
     private func layoutPanelAtSmoothedCursor() {
         let size = contentSizeForLayout()
 
-        let offsetX: CGFloat = 18
+        /// Левый край панели чуть правее hotspot курсора — первым идёт столбец гоблина.
+        let offsetX: CGFloat = 8
         let offsetY: CGFloat = 20
-        let pinMoveThreshold: CGFloat = 1.5
+        /// Рост/сжатие пузыря (текст) — не дёргаем верх панели по экрану.
+        let heightChanged = lastLaidOutHeight > 0 && abs(size.height - lastLaidOutHeight) > 1
 
-        let cursorJump = hypot(smoothedLocation.x - lastPinCursor.x, smoothedLocation.y - lastPinCursor.y)
-        if cursorJump > pinMoveThreshold || lockedPanelTopY == nil {
-            lastPinCursor = smoothedLocation
-            lockedPanelTopY = smoothedLocation.y + offsetY + size.height
-        } else if size.height < lastLaidOutHeight - 2 {
-            lastPinCursor = smoothedLocation
-            lockedPanelTopY = smoothedLocation.y + offsetY + size.height
+        var origin = CGPoint.zero
+        origin.x = smoothedLocation.x + offsetX
+        if heightChanged, let top = lastPanelTopY {
+            origin.y = top - size.height
+        } else {
+            origin.y = smoothedLocation.y + offsetY
         }
-
-        var origin = CGPoint(
-            x: smoothedLocation.x + offsetX,
-            y: (lockedPanelTopY ?? smoothedLocation.y + offsetY + size.height) - size.height
-        )
 
         if let screen = screenContaining(point: smoothedLocation) {
             let frame = screen.visibleFrame
@@ -182,13 +171,21 @@ final class OverlayPanelController: NSObject {
 
             origin.x = min(max(frame.minX, origin.x), frame.maxX - size.width)
             origin.y = min(max(frame.minY, origin.y), frame.maxY - size.height)
-            lockedPanelTopY = origin.y + size.height
-        } else {
-            lockedPanelTopY = origin.y + size.height
         }
 
+        lastPanelTopY = origin.y + size.height
         lastLaidOutHeight = size.height
-        panel.setFrame(NSRect(x: origin.x, y: origin.y, width: size.width, height: size.height), display: false)
+
+        let newFrame = NSRect(x: origin.x, y: origin.y, width: size.width, height: size.height)
+        let old = panel.frame
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        if abs(newFrame.width - old.width) < 0.5 && abs(newFrame.height - old.height) < 0.5 {
+            panel.setFrameOrigin(newFrame.origin)
+        } else {
+            panel.setFrame(newFrame, display: false)
+        }
+        CATransaction.commit()
     }
 
     private func screenContaining(point: CGPoint) -> NSScreen? {

@@ -3,9 +3,13 @@
   "renderMode": "frame_sequence",
   "defaultScale": 1.0,
   "displayHeightPoints": 120,
-  "stripCellsDefault": 36,
+  "stripCellsDefault": 24,
   "stripCellsByFile": {
-    "final_1.png": 35
+    "final_1.png": 23,
+    "idle_1.png": 24
+  },
+  "horizontalFlipStripByFile": {
+    "idle_1.png": true
   },
   "states": {
     "idle": {
@@ -18,19 +22,33 @@
       "fps": 14,
       "loop": true
     },
+    "short_phrase": {
+      "files": ["short_phrase.png"],
+      "fps": 14,
+      "loop": true
+    },
+    "smile": {
+      "files": ["smile.png"],
+      "fps": 14,
+      "loop": true
+    },
     "final": {
       "files": ["final_1.png"],
-      "fps": 14,
+      "fps": 20,
       "loop": false
     }
   },
   "fallbacks": {
     "talking": "idle",
+    "short_phrase": "talking",
+    "smile": "talking",
     "final": "talking"
   },
   "behaviorMapping": {
-    "idle": "waiting / observing / neutral mode",
-    "talking": "message reveal / typing reaction / active speaking",
-    "final": "punchline / warning / emphasis pose"
+    "idle": "persistent presence / idle loops only (never final)",
+    "talking": "reactions / trash-talk / speech (never final)",
+    "short_phrase": "1–2 word replies only during stream composite (never final)",
+    "smile": "laugh / giggle lines during stream composite (never final)",
+    "final": "terminal one-shot only after scenario completion (work return); not used as idle/talking fallback in code"
   }
 }

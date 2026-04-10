@@ -26,6 +26,11 @@ enum PermissionGate {
     static var screenRecordingAuthorized: Bool { screenRecordingPreflightGranted }
 
     /// Deep link в подраздел приватности. Схема `…PrivacySecurity.extension?…` на части сборок macOS не зарегистрирована и даёт диалог Finder «нет приложения для URL».
+    /// Раздел «Мониторинг ввода» (Input Monitoring) — нужен для `NSEvent.addGlobalMonitorForEvents(.scrollWheel)`.
+    static func openInputMonitoringPane() {
+        openPrivacyPane(anchor: "ListenEvent")
+    }
+
     static func openPrivacyPane(anchor: String) {
         let query = "Privacy_\(anchor)"
         let candidates: [String]

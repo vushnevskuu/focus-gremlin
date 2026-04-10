@@ -17,5 +17,10 @@ xcuserdata/
 # Cursor / IDE
 .cursor/
 
+# Локальные артефакты / кэши агента (не в репозиторий)
+.derivedData/
+Artifacts/
+Memory/
+
 # Локальный venv для scripts/generate_placeholder_gremlin_sheets.py
 .venv-sprites/

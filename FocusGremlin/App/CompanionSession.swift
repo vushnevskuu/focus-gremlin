@@ -9,7 +9,7 @@ enum CompanionSession {
 
     static func playTestMessage() async {
         guard let overlay, let orchestrator else { return }
-        guard !overlay.viewModel.isBusy else { return }
+        guard !overlay.viewModel.blocksNewGremlinLine, !overlay.viewModel.linePipelineLocked else { return }
         overlay.snapPanelToCursorNow()
         overlay.show()
         let settings = SettingsStore.shared

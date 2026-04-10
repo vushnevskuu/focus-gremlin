@@ -9,6 +9,28 @@ enum TemplatePhraseBank {
         return enLine(tone: tone, trigger: trigger)
     }
 
+    /// Короткие «вокальные» вставки, когда LLM включён, но ещё рано по интервалу — не полноценная речь, а кряхтенье/смех.
+    static func vocalInterjection(language: AppLanguage, memory: RecentMessageMemory) -> String {
+        let pool = language == .ru ? ruVocalPool : enVocalPool
+        for _ in 0..<28 {
+            guard let c = pool.randomElement() else { break }
+            if !memory.containsRecent(c) { return c }
+        }
+        return pool.randomElement() ?? "…"
+    }
+
+    private static let ruVocalPool: [String] = [
+        "Хммм…", "Пф!", "Тьфу.", "Хе-хе…", "Ахах, ну да.", "Гррр.", "Эх…", "Тсс.", "М-м-м…", "Ну-ну.",
+        "Ого-го.", "Ха!", "Фу.", "…серьёзно?", "Нда уж.", "Угу, конечно.", "Кх-кх…", "Брр.", "Хнык-ирония.",
+        "Лол.", "Ага.", "Мда.", "Тск.", "Хррм.", "Вот это да.", "Иии?", "Ну блин.", "Пффф."
+    ]
+
+    private static let enVocalPool: [String] = [
+        "Hmph.", "Heh.", "Tsk.", "Pfft.", "Ha.", "Haha—no.", "Ugh.", "Mmm…", "Seriously?", "Wow.",
+        "Grr.", "Yeah right.", "Huh.", "Ew.", "Riiight.", "Khh…", "Bruh.", "Sigh.", "Oh please.",
+        "Lol.", "Mm-hmm.", "Uh-huh.", "Tch.", "Hrm.", "Wow. Just wow.", "Really?", "Pfft—okay.", "Nope."
+    ]
+
     private static func ruLine(tone: ToneIntensity, trigger: DistractionTrigger) -> String {
         switch trigger {
         case .sustained:
@@ -45,6 +67,13 @@ enum TemplatePhraseBank {
                 "Заголовок окна молчит, а картинка кричит. Может, сменим контекст?",
                 "Я не шпион из облака — это твой Mac. Но даже он видит, что тут не дедлайны.",
                 "Смарт-режим поймал вайб прокрастинации. Давай честно: это точно задача?"
+            ], tone: tone)
+        case .pageChange:
+            return pick([
+                "О, новая страница. Мусор сам себя листать не станет.",
+                "Свежая вкладка, старые привычки. Какая трогательная деградация.",
+                "Сменил страницу, не курс. Классика.",
+                "Новый экран, тот же побег от дела."
             ], tone: tone)
         }
     }
@@ -85,6 +114,13 @@ enum TemplatePhraseBank {
                 "The window title is shy, but the pixels are loud. Interesting.",
                 "Local vision mode spotted classic procrastination energy. No cloud involved.",
                 "Smart mode caught the screen looking… extremely not like a deliverable."
+            ], tone: tone)
+        case .pageChange:
+            return pick([
+                "New page. Same swamp.",
+                "Fresh tab, same avoidance.",
+                "Different sludge, same ritual.",
+                "New screen, old escape."
             ], tone: tone)
         }
     }

@@ -1,7 +1,19 @@
 import Foundation
 
 protocol LLMProvider: Sendable {
-    func complete(systemPrompt: String, userPrompt: String) async throws -> String
+    /// `jpegImages` — кадры для мультимодального чата Ollama; `chatModel` переопределяет имя модели (обычно vision, например `llava`).
+    func complete(
+        systemPrompt: String,
+        userPrompt: String,
+        jpegImages: [Data],
+        chatModel: String?
+    ) async throws -> String
+}
+
+extension LLMProvider {
+    func complete(systemPrompt: String, userPrompt: String) async throws -> String {
+        try await complete(systemPrompt: systemPrompt, userPrompt: userPrompt, jpegImages: [], chatModel: nil)
+    }
 }
 
 enum LLMError: Error, LocalizedError {
