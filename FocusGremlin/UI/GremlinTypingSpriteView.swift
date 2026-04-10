@@ -4,8 +4,8 @@ import SwiftUI
 /// Замени `gremlin_typing.png` на свой лист; при другом размере поправь константы ниже.
 private enum GremlinTypingSheet {
     static let frameCount = 20
-    static let pixelWidth: CGFloat = 1024
-    static let pixelHeight: CGFloat = 28
+    static let pixelWidth: CGFloat = 1280
+    static let pixelHeight: CGFloat = 128
     /// Как у idle — визуально один темп, проще стыковать.
     static let fps: Double = 12
 }

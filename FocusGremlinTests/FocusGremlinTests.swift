@@ -115,3 +115,94 @@ final class MessageSelectorTests: XCTestCase {
         XCTAssertFalse(line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 }
+
+final class FocusEngineServiceLogicTests: XCTestCase {
+    func testHeavyScrollInNeutralBrowserEscalatesToDistracting() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["company.thebrowser.Browser"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["instagram"]
+        )
+
+        let category = FocusEngineService.effectiveCategory(
+            ruleCategory: .neutral,
+            visionCategory: nil,
+            bundleID: "company.thebrowser.Browser",
+            heavyScrolling: true,
+            configuration: config
+        )
+
+        XCTAssertEqual(category, .distracting)
+    }
+
+    func testHeavyScrollDoesNotOverrideProductiveBrowserContext() {
+        let config = FocusRuleConfiguration(
+            productiveBundleIDs: [],
+            distractingBundleIDs: [],
+            browserBundleIDs: ["com.google.Chrome"],
+            workTitleKeywords: ["github"],
+            distractionTitleMarkers: ["instagram"]
+        )
+
+        let category = FocusEngineService.effectiveCategory(
+            ruleCategory: .productive,
+            visionCategory: nil,
+            bundleID: "com.google.Chrome",
+            heavyScrolling: true,
+            configuration: config
+        )
+
+        XCTAssertEqual(category, .productive)
+    }
+}
+
+final class GremlinSpriteActionMappingTests: XCTestCase {
+    func testInterventionStartsWithEmphasisDuringTypingDots() {
+        XCTAssertEqual(
+            GremlinCharacterAnimationResolver.preferredStates(for: .typingDots, distractionInterventionActive: true),
+            [.final, .talking, .idle]
+        )
+    }
+
+    func testInterventionStreamsWithTalkingAnimation() {
+        XCTAssertEqual(
+            GremlinCharacterAnimationResolver.preferredStates(for: .streaming, distractionInterventionActive: true),
+            [.talking, .final, .idle]
+        )
+    }
+
+    func testRegularHoldingReturnsToIdle() {
+        XCTAssertEqual(
+            GremlinCharacterAnimationResolver.preferredStates(for: .holding, distractionInterventionActive: false),
+            [.idle, .talking]
+        )
+    }
+}
+
+final class GremlinSpriteThumbnailLoaderTests: XCTestCase {
+    func testLogicalFrameSizeForIdleSheetMatchesSourceCell() {
+        let url = characterSheetURL("idle_1.png")
+        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 36)
+        XCTAssertNotNil(size)
+        XCTAssertEqual(size?.width ?? 0, 784, accuracy: 0.01)
+        XCTAssertEqual(size?.height ?? 0, 784, accuracy: 0.01)
+    }
+
+    func testLogicalFrameSizeForFinalSheetStaysStableAcrossNonIntegralSourceWidth() {
+        let url = characterSheetURL("final_1.png")
+        let size = GremlinSpriteThumbnailLoader.logicalFramePixelSize(url: url, stripCellCount: 35)
+        XCTAssertNotNil(size)
+        XCTAssertEqual(size?.width ?? 0, 27048.0 / 35.0, accuracy: 0.01)
+        XCTAssertEqual(size?.height ?? 0, 784, accuracy: 0.01)
+    }
+
+    private func characterSheetURL(_ filename: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("FocusGremlin/Resources/CharacterSheets")
+            .appendingPathComponent(filename)
+    }
+}

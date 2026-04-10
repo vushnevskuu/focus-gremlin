@@ -11,6 +11,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var isPerformingLine = false
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        let bid = Bundle.main.bundleIdentifier ?? ""
+        guard !bid.isEmpty else { return }
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let others = NSRunningApplication.runningApplications(withBundleIdentifier: bid)
+            .filter { $0.processIdentifier != pid }
+        for app in others {
+            app.terminate()
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         let settings = SettingsStore.shared
         let policy = InterruptionPolicy(
@@ -31,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         overlay.show()
         focusEngine.start()
 
+        // ~30 Hz: плавное следование; тяжёлый layout оверлея кэшируется в OverlayPanelController.
         cursorTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard SettingsStore.shared.agentEnabled else { return }
@@ -55,6 +67,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLogger.app.info("Focus Gremlin запущен.")
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        SettingsStore.shared.flushPersistentStateToDisk()
+    }
+
     private func evaluate(_ output: FocusEngineOutput?) async {
         guard SettingsStore.shared.agentEnabled else { return }
         guard !isPerformingLine, !overlay.viewModel.isBusy else { return }
@@ -74,7 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         isPerformingLine = true
         defer { isPerformingLine = false }
 
-        await overlay.viewModel.runLiveDelivery(line)
+        await overlay.viewModel.runLiveDelivery(line, isDistractionIntervention: true)
         focusEngine.markInterventionShown()
     }
 

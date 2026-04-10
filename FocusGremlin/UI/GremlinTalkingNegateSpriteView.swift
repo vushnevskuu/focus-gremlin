@@ -3,8 +3,8 @@ import SwiftUI
 /// Говорение + отрицательное покачивание головой.
 private enum GremlinTalkingNegateSheet {
     static let frameCount = 20
-    static let pixelWidth: CGFloat = 1024
-    static let pixelHeight: CGFloat = 28
+    static let pixelWidth: CGFloat = 1280
+    static let pixelHeight: CGFloat = 128
     static let fps: Double = 14
 }
 

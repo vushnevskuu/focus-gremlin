@@ -10,6 +10,8 @@ enum CompanionSession {
     static func playTestMessage() async {
         guard let overlay, let orchestrator else { return }
         guard !overlay.viewModel.isBusy else { return }
+        overlay.snapPanelToCursorNow()
+        overlay.show()
         let settings = SettingsStore.shared
         let line = orchestrator.previewLine(trigger: .sustained, settings: settings)
         await overlay.viewModel.runLiveDelivery(line)

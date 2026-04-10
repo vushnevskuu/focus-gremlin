@@ -19,6 +19,10 @@ targets:
     platform: macOS
     sources:
       - path: FocusGremlin
+    resources:
+      - path: FocusGremlin/Resources/CharacterSheets
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.focusgremlin.app

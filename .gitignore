@@ -16,3 +16,6 @@ xcuserdata/
 
 # Cursor / IDE
 .cursor/
+
+# Локальный venv для scripts/generate_placeholder_gremlin_sheets.py
+.venv-sprites/

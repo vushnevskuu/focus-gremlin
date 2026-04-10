@@ -5,7 +5,8 @@ import CoreGraphics
 enum ScreenCaptureService {
     /// Возвращает сжатый JPEG или nil, если нет разрешения Screen Recording / сбой захвата.
     nonisolated static func captureMainDisplayJPEG(maxDimension: CGFloat = 768, quality: CGFloat = 0.52) -> Data? {
-        guard CGPreflightScreenCaptureAccess() else { return nil }
+        // Не пробуем захват, пока пассивная проверка прав не зелёная, чтобы не дёргать системный prompt.
+        guard PermissionGate.screenRecordingAuthorized else { return nil }
         let displayID = CGMainDisplayID()
         guard let cgImage = CGDisplayCreateImage(displayID) else { return nil }
 

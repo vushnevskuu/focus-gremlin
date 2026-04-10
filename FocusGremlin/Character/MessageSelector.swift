@@ -8,10 +8,9 @@ struct MessageSelector: Sendable {
         trigger: DistractionTrigger,
         memory: RecentMessageMemory
     ) -> String {
-        var mem = memory
         for _ in 0..<12 {
             let candidate = TemplatePhraseBank.fallbackLine(language: language, tone: tone, trigger: trigger)
-            if !mem.containsRecent(candidate) {
+            if !memory.containsRecent(candidate) {
                 return candidate
             }
         }

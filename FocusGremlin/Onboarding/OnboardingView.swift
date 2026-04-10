@@ -27,7 +27,7 @@ struct OnboardingView: View {
                 GroupBox("Запись экрана (Smart Mode)") {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Если включите Smart Mode в настройках, приложение редко снимает экран в память и отправляет сжатый кадр только в локальную Ollama с vision-моделью. По умолчанию на диск не сохраняется; опция отладки — отдельный переключатель.")
-                        Button("Запросить доступ к записи экрана") {
+                        Button("Открыть настройки записи экрана") {
                             _ = PermissionGate.requestScreenCaptureAccess()
                         }
                     }

@@ -3,8 +3,8 @@ import SwiftUI
 /// Горизонтальный спрайт «помощник улетает» (один проход, без цикла).
 enum GremlinDismissSheet {
     static let frameCount = 19
-    static let pixelWidth: CGFloat = 1024
-    static let pixelHeight: CGFloat = 29
+    static let pixelWidth: CGFloat = 1216
+    static let pixelHeight: CGFloat = 128
     static let fps: Double = 14
     /// Длительность полного прохода по кадрам (секунды).
     static var animationDuration: TimeInterval { Double(frameCount) / fps }

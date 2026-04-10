@@ -3,8 +3,10 @@ import SwiftUI
 
 struct SettingsRootView: View {
     @EnvironmentObject private var settings: SettingsStore
-    /// Сбрасывает кэш SwiftUI: после выдачи прав в «Настройках» приложение снова читает AX/ScreenCapture.
-    @State private var permissionRefreshToken = 0
+    /// Обновляется только по кнопке и при первом появлении — без опроса TCC на каждый кадр SwiftUI.
+    @State private var axGrantedSnapshot = false
+    @State private var screenGrantedSnapshot = false
+    @State private var lastActivePermissionRefresh = Date.distantPast
 
     var body: some View {
         Form {
@@ -85,9 +87,9 @@ struct SettingsRootView: View {
                 Toggle("Согласие: редкий захват экрана в память + анализ в Ollama на этом Mac", isOn: $settings.smartVisionConsent)
                 Toggle("Включить Smart Mode", isOn: $settings.smartModeEnabled)
                     .disabled(!settings.smartVisionConsent)
-                    .onChange(of: settings.smartModeEnabled) { _, on in
-                        if on {
-                            _ = PermissionGate.requestScreenCaptureAccess()
+                    .onChange(of: settings.smartModeEnabled) { _, _ in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            refreshPermissionSnapshots()
                         }
                     }
                 Stepper(value: $settings.smartSamplingIntervalSeconds, in: 35...240, step: 5) {
@@ -96,8 +98,11 @@ struct SettingsRootView: View {
                 TextField("Vision-модель Ollama", text: $settings.smartVisionModel)
                 Toggle("Сохранять последний кадр в Application Support (отладка)", isOn: $settings.smartDebugSaveFrames)
                     .disabled(!settings.smartVisionConsent)
-                Button("Запросить доступ к записи экрана") {
+                Button("Открыть настройки записи экрана") {
                     _ = PermissionGate.requestScreenCaptureAccess()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        refreshPermissionSnapshots()
+                    }
                 }
                 Button("Настройки → Запись экрана") {
                     PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
@@ -111,16 +116,19 @@ struct SettingsRootView: View {
                 Button("Показать тестовое сообщение") {
                     Task { await CompanionSession.playTestMessage() }
                 }
+                Text("Сообщение и гремлин появляются у указателя мыши на экране, не внутри этого окна. Подведи курсор туда, где хочешь увидеть оверлей.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Приватность и доступы") {
                 LabeledContent("Accessibility") {
-                    Text(axTrustedLabel)
-                        .foregroundStyle(PermissionGate.accessibilityTrusted ? .green : .orange)
+                    Text(axGrantedSnapshot ? "Включено" : "Нужно для заголовка окна")
+                        .foregroundStyle(axGrantedSnapshot ? .green : .orange)
                 }
                 LabeledContent("Запись экрана") {
-                    Text(screenLabel)
-                        .foregroundStyle(PermissionGate.screenRecordingAuthorized ? .green : .orange)
+                    Text(screenGrantedSnapshot ? "Разрешено" : "Нужно для Smart Mode (открой настройки ниже)")
+                        .foregroundStyle(screenGrantedSnapshot ? .green : .orange)
                 }
                 Button("Открыть: Accessibility") {
                     PermissionGate.openPrivacyPane(anchor: "Accessibility")
@@ -129,32 +137,29 @@ struct SettingsRootView: View {
                     PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
                 }
                 Button("Обновить статус") {
-                    permissionRefreshToken &+= 1
+                    refreshPermissionSnapshots()
                 }
                 Text(
-                    "Если только что включил доступ: вернись в это окно и нажми «Обновить статус» или полностью закрой Focus Gremlin (⌘Q) и запусти снова. В списке должен быть именно этот билд (Debug из Xcode и .app из папки build — разные записи)."
+                    "Статус обновляется при открытии этого окна и при возврате в приложение. Если в «Настройки → Конфиденциальность» доступ уже включён, а строка всё ещё оранжевая — нажми «Обновить статус» или перезапусти приложение (для другой копии .app нужен отдельный переключатель в списке)."
                 )
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             }
-            .id(permissionRefreshToken)
         }
         .formStyle(.grouped)
         .padding()
         .frame(minWidth: 520, minHeight: 640)
-        .onAppear { permissionRefreshToken &+= 1 }
+        .onAppear { refreshPermissionSnapshots() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            permissionRefreshToken &+= 1
+            let now = Date()
+            guard now.timeIntervalSince(lastActivePermissionRefresh) > 1 else { return }
+            lastActivePermissionRefresh = now
+            refreshPermissionSnapshots()
         }
     }
 
-    private var axTrustedLabel: String {
-        _ = permissionRefreshToken
-        return PermissionGate.accessibilityTrusted ? "Включено" : "Нужно для заголовка окна"
-    }
-
-    private var screenLabel: String {
-        _ = permissionRefreshToken
-        return PermissionGate.screenRecordingAuthorized ? "Разрешено" : "Нужно для Smart Mode"
+    private func refreshPermissionSnapshots() {
+        axGrantedSnapshot = PermissionGate.accessibilityTrusted
+        screenGrantedSnapshot = PermissionGate.screenRecordingPreflightGranted
     }
 }

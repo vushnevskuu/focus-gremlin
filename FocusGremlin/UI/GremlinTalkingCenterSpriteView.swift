@@ -1,11 +1,11 @@
 import SwiftUI
 
 /// Рот в камеру / «говорит», когда курсор в центральной зоне экрана.
-/// Текущий ассет в репо: полоса **1024×28**. Если заменишь на **1408×64** с **22** кадрами 64×64 — обнови константы.
+/// Горизонтальный лист: `pixelWidth` = `frameCount` × ширина кадра в px (сейчас 64).
 private enum GremlinTalkingCenterSheet {
     static let frameCount = 20
-    static let pixelWidth: CGFloat = 1024
-    static let pixelHeight: CGFloat = 28
+    static let pixelWidth: CGFloat = 1280
+    static let pixelHeight: CGFloat = 128
     static let fps: Double = 14
 }
 

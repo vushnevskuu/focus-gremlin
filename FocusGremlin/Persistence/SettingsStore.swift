@@ -17,42 +17,42 @@ final class SettingsStore: ObservableObject {
     static let shared = SettingsStore()
 
     @Published var agentEnabled: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var toneIntensity: ToneIntensity {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var language: AppLanguage {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var productiveBundleIDs: [String] {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var distractingBundleIDs: [String] {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var browserWorkKeywords: [String] {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var cooldownSeconds: Double {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var maxInterruptionsPerHour: Int {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var distractionSecondsBeforeNudge: Double {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var soundEffectsEnabled: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var startAtLogin: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var smartModeEnabled: Bool {
         didSet {
             UserDefaults.standard.set(smartModeEnabled, forKey: "fg.feature.smartVision")
-            save()
+            schedulePersistToDisk()
         }
     }
     /// Явное согласие на анализ кадров (только память + локальный Ollama; опционально debug-файл).
@@ -62,32 +62,51 @@ final class SettingsStore: ObservableObject {
                 smartModeEnabled = false
                 smartDebugSaveFrames = false
             }
-            save()
+            schedulePersistToDisk()
         }
     }
     @Published var smartSamplingIntervalSeconds: Double {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var smartVisionModel: String {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var smartDebugSaveFrames: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var ollamaModel: String {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var ollamaBaseURL: String {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var useLLMForLines: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var llmMinIntervalSeconds: Double {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
     }
     @Published var onboardingCompleted: Bool {
-        didSet { save() }
+        didSet { schedulePersistToDisk() }
+    }
+
+    private var persistWorkItem: DispatchWorkItem?
+
+    /// Немедленная запись (выход из приложения); иначе настройки пишутся с небольшой задержкой, чтобы не душить главный поток при наборе в списках.
+    func flushPersistentStateToDisk() {
+        persistWorkItem?.cancel()
+        persistWorkItem = nil
+        persistToDisk()
+    }
+
+    private func schedulePersistToDisk() {
+        persistWorkItem?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            self?.persistToDisk()
+            self?.persistWorkItem = nil
+        }
+        persistWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: item)
     }
 
     private let defaults = UserDefaults.standard
@@ -133,7 +152,7 @@ final class SettingsStore: ObservableObject {
 
         UserDefaults.standard.set(smartModeEnabled, forKey: "fg.feature.smartVision")
         if didMigrateFromLegacy {
-            save()
+            persistToDisk()
         }
     }
 
@@ -233,7 +252,7 @@ final class SettingsStore: ObservableObject {
         var onboardingCompleted: Bool
     }
 
-    private func save() {
+    private func persistToDisk() {
         let p = Persisted(
             agentEnabled: agentEnabled,
             toneIntensity: toneIntensity,

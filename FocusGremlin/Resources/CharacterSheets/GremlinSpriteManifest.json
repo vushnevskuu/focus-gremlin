@@ -1,0 +1,36 @@
+{
+  "character": "FocusGremlin",
+  "renderMode": "frame_sequence",
+  "defaultScale": 1.0,
+  "displayHeightPoints": 120,
+  "stripCellsDefault": 36,
+  "stripCellsByFile": {
+    "final_1.png": 35
+  },
+  "states": {
+    "idle": {
+      "files": ["idle_1.png", "idle_2.png"],
+      "fps": 12,
+      "loop": true
+    },
+    "talking": {
+      "files": ["talking_1.png", "talking_2.png", "talking_3.png"],
+      "fps": 14,
+      "loop": true
+    },
+    "final": {
+      "files": ["final_1.png"],
+      "fps": 14,
+      "loop": false
+    }
+  },
+  "fallbacks": {
+    "talking": "idle",
+    "final": "talking"
+  },
+  "behaviorMapping": {
+    "idle": "waiting / observing / neutral mode",
+    "talking": "message reveal / typing reaction / active speaking",
+    "final": "punchline / warning / emphasis pose"
+  }
+}

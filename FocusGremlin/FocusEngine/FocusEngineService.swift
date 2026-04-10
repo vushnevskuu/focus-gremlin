@@ -25,6 +25,7 @@ final class FocusEngineService: ObservableObject {
         }
     }
     private var scrollTracker = ScrollSessionTracker()
+    private var lastFrontmostBundleID: String?
     private var hysteresis = AppSwitchHysteresis()
     private var distractionEnteredAt: Date?
     private var lastWarningAt: Date?
@@ -73,6 +74,11 @@ final class FocusEngineService: ObservableObject {
         let bundle = app?.bundleIdentifier ?? ""
         let title = WindowContextProvider.frontmostWindowTitle()
 
+        if let lastFrontmostBundleID, lastFrontmostBundleID != bundle {
+            scrollTracker.reset()
+        }
+        lastFrontmostBundleID = bundle
+
         let snapshot = FocusSnapshot(bundleID: bundle, windowTitle: title, timestamp: Date())
         let config = FocusRuleConfiguration(
             productiveBundleIDs: Set(settings.productiveBundleIDs),
@@ -81,21 +87,35 @@ final class FocusEngineService: ObservableObject {
             workTitleKeywords: settings.browserWorkKeywords,
             distractionTitleMarkers: FocusRuleConfiguration.defaultDistractionMarkers
         )
+        let heavyScroll = scrollTracker.isHeavyScrolling(now: snapshot.timestamp)
         let classifier = FocusClassifier(configuration: config)
         let ruleCategory = classifier.classify(snapshot)
         let visionCategory = smartMode?.freshVision(at: snapshot.timestamp)
-        let category = SmartCategoryMerge.merge(rule: ruleCategory, vision: visionCategory)
+        let category = Self.effectiveCategory(
+            ruleCategory: ruleCategory,
+            visionCategory: visionCategory,
+            bundleID: bundle,
+            heavyScrolling: heavyScroll,
+            configuration: config
+        )
 
         hysteresis.register(category: category)
 
         var trigger: DistractionTrigger?
+        let keepScrollSessionAlive = Self.shouldKeepScrollSession(
+            bundleID: bundle,
+            ruleCategory: ruleCategory,
+            configuration: config
+        )
 
         if category != .distracting {
             if let lw = lastWarningAt, snapshot.timestamp.timeIntervalSince(lw) < 120 {
                 leftDistractionAfterWarning = true
             }
             distractionEnteredAt = nil
-            scrollTracker.reset()
+            if !keepScrollSessionAlive {
+                scrollTracker.reset()
+            }
         }
 
         if category == .distracting {
@@ -104,7 +124,6 @@ final class FocusEngineService: ObservableObject {
             }
             let entered = distractionEnteredAt ?? snapshot.timestamp
             let sustained = snapshot.timestamp.timeIntervalSince(entered) >= settings.distractionSecondsBeforeNudge
-            let heavyScroll = scrollTracker.isHeavyScrolling()
             let chaotic = hysteresis.isChaoticFlipping()
 
             if leftDistractionAfterWarning, lastWarningAt != nil,
@@ -126,11 +145,45 @@ final class FocusEngineService: ObservableObject {
             }
         }
 
-        latestOutput = FocusEngineOutput(category: category, snapshot: snapshot, trigger: trigger)
+        let next = FocusEngineOutput(category: category, snapshot: snapshot, trigger: trigger)
+        if let cur = latestOutput,
+           cur.category == next.category,
+           cur.trigger == next.trigger,
+           cur.snapshot.bundleID == next.snapshot.bundleID,
+           cur.snapshot.windowTitle == next.snapshot.windowTitle {
+            return
+        }
+        AppLogger.focus.debug(
+            "Focus update bundle=\(next.snapshot.bundleID, privacy: .public) title=\((next.snapshot.windowTitle ?? "<nil>"), privacy: .public) category=\(next.category.rawValue, privacy: .public) trigger=\((next.trigger?.rawValue ?? "none"), privacy: .public)"
+        )
+        latestOutput = next
     }
 
     func markInterventionShown() {
         lastWarningAt = Date()
         leftDistractionAfterWarning = false
+    }
+
+    nonisolated static func effectiveCategory(
+        ruleCategory: FocusCategory,
+        visionCategory: FocusCategory?,
+        bundleID: String,
+        heavyScrolling: Bool,
+        configuration: FocusRuleConfiguration
+    ) -> FocusCategory {
+        if heavyScrolling,
+           configuration.browserBundleIDs.contains(bundleID),
+           ruleCategory != .productive {
+            return .distracting
+        }
+        return SmartCategoryMerge.merge(rule: ruleCategory, vision: visionCategory)
+    }
+
+    nonisolated static func shouldKeepScrollSession(
+        bundleID: String,
+        ruleCategory: FocusCategory,
+        configuration: FocusRuleConfiguration
+    ) -> Bool {
+        configuration.browserBundleIDs.contains(bundleID) && ruleCategory != .productive
     }
 }

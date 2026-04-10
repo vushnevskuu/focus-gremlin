@@ -3,8 +3,9 @@ import ApplicationServices
 import CoreGraphics
 
 enum PermissionGate {
+    /// Системный флаг + запасной **функциональный** тест (на части macOS AXTrusted врёт до перезапуска или после смены сборки .app).
     static var accessibilityTrusted: Bool {
-        WindowContextProvider.isAccessibilityTrusted
+        WindowContextProvider.accessibilityAvailable
     }
 
     /// Для глобального мониторинга скролла обычно нужен доступ из настроек приватности (Input Monitoring).
@@ -12,24 +13,27 @@ enum PermissionGate {
         accessibilityTrusted
     }
 
-    /// `CGPreflightScreenCaptureAccess` на части версий macOS расходится с TCC (в настройках уже «вкл», а preflight — false).
-    /// `CGRequestScreenCaptureAccess` при уже сохранённом ответе пользователя не показывает диалог и отражает фактический доступ.
-    static var screenRecordingAuthorized: Bool {
+    /// Пассивная проверка разрешения на запись экрана. Без пробного захвата:
+    /// он может сам поднять системный TCC-диалог, чего мы как раз хотим избежать.
+    static var screenRecordingPreflightGranted: Bool {
         if #available(macOS 10.15, *) {
-            if CGPreflightScreenCaptureAccess() { return true }
-            return CGRequestScreenCaptureAccess()
+            return CGPreflightScreenCaptureAccess()
         }
         return true
     }
+
+    /// Для Smart Mode и захвата — то же, что отображаем в настройках.
+    static var screenRecordingAuthorized: Bool { screenRecordingPreflightGranted }
 
     /// Deep link в подраздел приватности. Схема `…PrivacySecurity.extension?…` на части сборок macOS не зарегистрирована и даёт диалог Finder «нет приложения для URL».
     static func openPrivacyPane(anchor: String) {
         let query = "Privacy_\(anchor)"
         let candidates: [String]
         if #available(macOS 13.0, *) {
+            // На части сборок `systemsettings` не привязан к хэндлеру → диалог Finder; `systempreferences` часто открывает System Settings.
             candidates = [
-                "x-apple.systemsettings:com.apple.preference.security?\(query)",
-                "x-apple.systempreferences:com.apple.preference.security?\(query)"
+                "x-apple.systempreferences:com.apple.preference.security?\(query)",
+                "x-apple.systemsettings:com.apple.preference.security?\(query)"
             ]
         } else {
             candidates = [
@@ -38,8 +42,7 @@ enum PermissionGate {
         }
         for s in candidates {
             guard let url = URL(string: s) else { continue }
-            NSWorkspace.shared.open(url)
-            return
+            if NSWorkspace.shared.open(url) { return }
         }
         openSystemPrivacySettingsFallback()
     }
@@ -56,12 +59,10 @@ enum PermissionGate {
         }
     }
 
-    /// Запросить доступ к записи экрана (покажет системный диалог при необходимости).
+    /// Не вызываем системный prompt автоматически. Вместо этого просто открываем нужный раздел настроек.
     @discardableResult
     static func requestScreenCaptureAccess() -> Bool {
-        if #available(macOS 10.15, *) {
-            return CGRequestScreenCaptureAccess()
-        }
-        return true
+        openPrivacyPane(anchor: "ScreenCapture")
+        return screenRecordingAuthorized
     }
 }

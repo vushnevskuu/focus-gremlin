@@ -4,7 +4,7 @@ import ApplicationServices
 /// Заголовок фронтального окна через Accessibility. Без доверия возвращает nil — это нормальный graceful fallback.
 enum WindowContextProvider {
     static func frontmostWindowTitle() -> String? {
-        guard AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary) else {
+        guard accessibilityAvailable else {
             return nil
         }
         guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
@@ -23,5 +23,23 @@ enum WindowContextProvider {
 
     static var isAccessibilityTrusted: Bool {
         AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary)
+    }
+
+    /// На части macOS/TCC после пересборки ad-hoc приложения системный флаг может временно врать.
+    /// Держим тот же функциональный fallback, что и в UI статуса прав, чтобы browser title не пропадал.
+    static var accessibilityAvailable: Bool {
+        if isAccessibilityTrusted { return true }
+        return accessibilitySelfWindowsProbeSucceeds()
+    }
+
+    /// Реально ли читается список окон своего процесса через AX (признак выданного Accessibility).
+    private static func accessibilitySelfWindowsProbeSucceeds() -> Bool {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let appEl = AXUIElementCreateApplication(pid)
+        var windows: CFTypeRef?
+        let err = AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &windows)
+        guard err == .success else { return false }
+        if let arr = windows as? [Any] { return !arr.isEmpty }
+        return windows != nil
     }
 }
