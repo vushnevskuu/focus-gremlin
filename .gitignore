@@ -2,6 +2,7 @@
 *.xcodeproj.bak/
 FocusGremlin.xcodeproj.bak/
 build/
+dist/
 DerivedData/
 *.xcuserstate
 xcuserdata/
@@ -24,3 +25,4 @@ Memory/
 
 # Локальный venv для scripts/generate_placeholder_gremlin_sheets.py
 .venv-sprites/
+.vercel

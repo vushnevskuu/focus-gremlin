@@ -12,6 +12,25 @@
 
 Сайт будет доступен по адресу вида `https://<user>.github.io/focus-gremlin/` (после первого деплоя подставьте свой URL в `docs/index.html` в тегах `canonical` и `og:image`, если имя репозитория другое).
 
+## Лендинг (Vercel)
+
+В корне репозитория уже лежит [`vercel.json`](vercel.json): при деплое копируется [`docs/`](docs/) → `dist/`, в `canonical` и Open Graph подставляется `https://$VERCEL_URL` (чтобы превью не вели на GitHub Pages).
+
+1. Зайди на [vercel.com](https://vercel.com) → **Add New…** → **Project** → импортируй `vushnevskuu/focus-gremlin` (или свой форк).
+2. **Framework Preset:** Other (или оставь авто — сработает `vercel.json`).
+3. **Build / Output** подтянутся из `vercel.json`; менять Root Directory **не нужно** (корень репо).
+4. **Deploy**. Продакшен-алиас проекта: **https://focus-gremlin.vercel.app** (каждый пуш в `main` пересоберёт сайт, если включён Git integration).
+
+При своём домене в Vercel при желании обнови ссылки в `docs/index.html` вручную.
+
+Локальная проверка сборки:
+
+```bash
+bash scripts/vercel-build.sh && open dist/index.html
+```
+
+CLI (если установлен и выполнен `vercel login`): из корня репозитория `npx vercel@latest --prod`.
+
 ## Установка Xcode на чистую систему
 
 Полный **Xcode** (не только Command Line Tools) ставится так:

@@ -1,0 +1,5 @@
+{
+  "name": "focus-gremlin-landing",
+  "private": true,
+  "description": "Static landing (docs/) deployed to Vercel; macOS app lives in FocusGremlin/"
+}

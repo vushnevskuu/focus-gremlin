@@ -1,0 +1,12 @@
+# Ускорить деплой: на Vercel нужны только лендинг и скрипт сборки.
+FocusGremlin/
+FocusGremlinTests/
+FocusGremlin.xcodeproj/
+DerivedData/
+build/
+.derivedData/
+Artifacts/
+Memory/
+*.xcworkspace
+project.yml
+gen_pbx.py
