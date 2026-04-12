@@ -48,8 +48,13 @@ enum GremlinSpeechContext {
             "pfft", "snort", "snorts", "giggle", "giggles", "chuckle", "chuckles"
         ]
 
-        return normalized.allSatisfy { token in
-            laughTokens.contains(token) || token.hasPrefix("ha") || token.hasPrefix("heh")
+        if let first = normalized.first,
+           laughTokens.contains(first) || first.hasPrefix("ha") || first.hasPrefix("heh") {
+            return true
+        }
+
+        return normalized.contains {
+            laughTokens.contains($0) || $0.hasPrefix("ha") || $0.hasPrefix("heh")
         }
     }
 }

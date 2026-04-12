@@ -14,6 +14,10 @@ final class GremlinNativeSequencePlayerView: NSView {
     private var tailFps: Double?
     private var displayHeight: CGFloat = 120
     private var epochStart: CFAbsoluteTime = 0
+    /// Пауза кадров (окно настроек на переднем плане — не крутить спрайт впустую).
+    private var tickerSuspended = false
+    /// `DispatchSourceTimer` создаётся уже с suspension count = 1; без флага легко сделать лишний `resume()` или `suspend()`.
+    private var tickerDidResume = false
 
     override var isFlipped: Bool { true }
 
@@ -35,7 +39,18 @@ final class GremlinNativeSequencePlayerView: NSView {
     }
 
     deinit {
-        tickSource?.cancel()
+        cancelTickSourceSafely()
+    }
+
+    /// `cancel()` на приостановленном `DispatchSource` даёт «Release of a suspended object» — сначала балансируем suspend-count.
+    private func cancelTickSourceSafely() {
+        guard let src = tickSource else { return }
+        tickSource = nil
+        if !tickerDidResume {
+            src.resume()
+        }
+        src.cancel()
+        tickerDidResume = false
     }
 
     func configure(
@@ -47,8 +62,7 @@ final class GremlinNativeSequencePlayerView: NSView {
         displayHeight: CGFloat,
         restartClock: Bool
     ) {
-        tickSource?.cancel()
-        tickSource = nil
+        cancelTickSourceSafely()
 
         self.frames = frames
         self.fps = max(fps, 0.01)
@@ -73,10 +87,29 @@ final class GremlinNativeSequencePlayerView: NSView {
         src.setEventHandler { [weak self] in
             self?.tick()
         }
-        src.resume()
         tickSource = src
+        applyTickerSuspension()
 
         tick()
+    }
+
+    func setTickerSuspended(_ suspended: Bool) {
+        guard suspended != tickerSuspended else { return }
+        tickerSuspended = suspended
+        applyTickerSuspension()
+    }
+
+    private func applyTickerSuspension() {
+        guard let src = tickSource else { return }
+        if tickerSuspended {
+            guard tickerDidResume else { return }
+            src.suspend()
+            tickerDidResume = false
+        } else {
+            guard !tickerDidResume else { return }
+            src.resume()
+            tickerDidResume = true
+        }
     }
 
     private func frameIndex(elapsed: TimeInterval) -> Int {
@@ -116,11 +149,13 @@ struct GremlinNativeSequencePlayerRepresentable: NSViewRepresentable {
     var animationEpoch: Date
     /// Синхронизация с SwiftUI: смена фазы/стиля листа должна сбрасывать плеер даже при редких совпадениях кадров.
     var playbackIdentity: String
+    var suspendSpriteTicker: Bool
 
     final class Coordinator {
         var contentKey: String?
         var epochSeconds: TimeInterval = 0
         var prefetchKey: String?
+        var suspendSpriteTicker = false
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -131,6 +166,11 @@ struct GremlinNativeSequencePlayerRepresentable: NSViewRepresentable {
 
     func updateNSView(_ nsView: GremlinNativeSequencePlayerView, context: Context) {
         let c = context.coordinator
+        if c.suspendSpriteTicker != suspendSpriteTicker {
+            c.suspendSpriteTicker = suspendSpriteTicker
+            nsView.setTickerSuspended(suspendSpriteTicker)
+        }
+
         let ck = Self.contentSignature(
             frames: frames,
             fps: fps,

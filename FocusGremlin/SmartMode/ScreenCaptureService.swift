@@ -90,12 +90,13 @@ enum ScreenCaptureService {
         let targetH = max(1, Int(h * scale))
 
         let sourceImage = NSImage(cgImage: cgImage, size: NSSize(width: w, height: h))
+        // 3 сэмпла + hasAlpha: false — иначе AppKit логирует «Inconsistent set of values…» и может сорвать поток.
         guard let rep = NSBitmapImageRep(
             bitmapDataPlanes: nil,
             pixelsWide: targetW,
             pixelsHigh: targetH,
             bitsPerSample: 8,
-            samplesPerPixel: 4,
+            samplesPerPixel: 3,
             hasAlpha: false,
             isPlanar: false,
             colorSpaceName: .deviceRGB,

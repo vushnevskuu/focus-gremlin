@@ -4,6 +4,11 @@ import Foundation
 @MainActor
 enum CompanionSession {
     static weak var overlay: OverlayPanelController?
+
+    /// Панель плевков и `spitPanelContentSize` должны совпасть с экраном до отрисовки пятен (иначе один кадр с нулевым размером).
+    static func syncSpitOverlayWithCursorScreen() {
+        overlay?.syncSpitPanelWithCursorScreen()
+    }
     static weak var orchestrator: GremlinOrchestrator?
     static weak var focusEngine: FocusEngineService?
 

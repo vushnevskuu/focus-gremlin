@@ -7,6 +7,8 @@ import SwiftUI
 final class OverlayPanelController: NSObject {
     private let panel: NSPanel
     private let hostingView: NSHostingView<CompanionBubbleView>
+    private let spitPanel: NSPanel
+    private let spitHostingView: NSHostingView<GoblinSpitOverlayView>
     let viewModel: CompanionViewModel
 
     private var smoothedLocation: CGPoint = .zero
@@ -19,11 +21,18 @@ final class OverlayPanelController: NSObject {
     private var lastSizeMeasureUptime: TimeInterval = 0
     private var lastMeasuredPhase: BubblePhase = .idle
     private var lastMeasuredTextCount: Int = -1
+    /// Когда плевков нет, `updateSpitPanel` не нужен каждый тик — режем лишние `setFrame`/`orderFront`.
+    private var cursorFollowTickCounter = 0
+    private var lastSpitTickMouse = CGPoint(x: CGFloat.nan, y: CGFloat.nan)
+    /// Обновлять `cursorZone` только если курсор реально сдвинулся (меньше лишних публикаций в VM).
+    private var cursorMovedThisTick = false
 
     init(viewModel: CompanionViewModel) {
         self.viewModel = viewModel
         let root = CompanionBubbleView(viewModel: viewModel)
         self.hostingView = NSHostingView(rootView: root)
+        let spitRoot = GoblinSpitOverlayView(viewModel: viewModel)
+        self.spitHostingView = NSHostingView(rootView: spitRoot)
 
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 360, height: 200),
@@ -32,6 +41,13 @@ final class OverlayPanelController: NSObject {
             defer: false
         )
         self.panel = panel
+        let spitPanel = NSPanel(
+            contentRect: NSScreen.main?.visibleFrame ?? NSScreen.main?.frame ?? NSRect(x: 0, y: 0, width: 800, height: 600),
+            styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        self.spitPanel = spitPanel
 
         super.init()
 
@@ -50,12 +66,33 @@ final class OverlayPanelController: NSObject {
         panel.contentView = hostingView
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
 
+        spitPanel.level = .mainMenu
+        spitPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        spitPanel.isFloatingPanel = true
+        spitPanel.hidesOnDeactivate = false
+        spitPanel.isOpaque = false
+        spitPanel.backgroundColor = .clear
+        spitPanel.hasShadow = false
+        spitPanel.ignoresMouseEvents = true
+        spitPanel.becomesKeyOnlyIfNeeded = true
+        spitPanel.titleVisibility = .hidden
+        spitPanel.titlebarAppearsTransparent = true
+        spitPanel.contentView = spitHostingView
+        spitHostingView.layer?.backgroundColor = NSColor.clear.cgColor
+
         hostingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             hostingView.leadingAnchor.constraint(equalTo: panel.contentView!.leadingAnchor),
             hostingView.trailingAnchor.constraint(equalTo: panel.contentView!.trailingAnchor),
             hostingView.topAnchor.constraint(equalTo: panel.contentView!.topAnchor),
             hostingView.bottomAnchor.constraint(equalTo: panel.contentView!.bottomAnchor)
+        ])
+        spitHostingView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spitHostingView.leadingAnchor.constraint(equalTo: spitPanel.contentView!.leadingAnchor),
+            spitHostingView.trailingAnchor.constraint(equalTo: spitPanel.contentView!.trailingAnchor),
+            spitHostingView.topAnchor.constraint(equalTo: spitPanel.contentView!.topAnchor),
+            spitHostingView.bottomAnchor.constraint(equalTo: spitPanel.contentView!.bottomAnchor)
         ])
 
         let center = NotificationCenter.default
@@ -89,7 +126,13 @@ final class OverlayPanelController: NSObject {
     }
 
     func show() {
+        updateSpitPanel(on: screenContaining(point: NSEvent.mouseLocation), refreshZOrder: true)
         panel.orderFrontRegardless()
+    }
+
+    /// Сразу выставить `visibleFrame`, размер для SwiftUI и показать панель — нужно в тот же момент, когда появляются пятна (до следующего тика курсора).
+    func syncSpitPanelWithCursorScreen() {
+        updateSpitPanel(on: screenContaining(point: NSEvent.mouseLocation), refreshZOrder: true)
     }
 
     /// Сразу подставить позицию курсора и пересчитать frame (нужно для теста, если агент выключен — таймер не крутится).
@@ -104,11 +147,33 @@ final class OverlayPanelController: NSObject {
 
     func tickCursorFollow() {
         updateMainWindowInteractionFlag()
-        guard !viewModel.isInteractionFocusedOnMainAppWindow else { return }
-
-        // Без сглаживания: позиция панели = текущий курсор (минимальная задержка).
         let mouse = NSEvent.mouseLocation
-        smoothedLocation = mouse
+        let firstMouseSample = lastSpitTickMouse.x.isNaN
+        let mouseMoved: Bool
+        if firstMouseSample {
+            mouseMoved = true
+        } else {
+            mouseMoved = hypot(mouse.x - lastSpitTickMouse.x, mouse.y - lastSpitTickMouse.y) > 0.75
+        }
+        lastSpitTickMouse = mouse
+        cursorMovedThisTick = mouseMoved
+        cursorFollowTickCounter += 1
+
+        let spitVisible = viewModel.shouldShowSpitOverlay
+        let spitLayoutTick =
+            mouseMoved
+            || cursorFollowTickCounter.isMultiple(of: 6)
+            || (spitVisible && cursorFollowTickCounter.isMultiple(of: 3))
+            || (spitVisible && cursorFollowTickCounter.isMultiple(of: 10))
+        let spitZOrderTick = mouseMoved || cursorFollowTickCounter.isMultiple(of: 10)
+        if spitLayoutTick {
+            updateSpitPanel(on: screenContaining(point: mouse), refreshZOrder: spitZOrderTick)
+        }
+
+        // Как в стабильной ветке репозитория: позиция панели = курсор (без лерпа). При фокусе в своём окне — не двигаем, но layout делаем (размер текста).
+        if !viewModel.isInteractionFocusedOnMainAppWindow {
+            smoothedLocation = mouse
+        }
         layoutPanelAtSmoothedCursor()
     }
 
@@ -167,7 +232,9 @@ final class OverlayPanelController: NSObject {
             let frame = screen.visibleFrame
             let w = max(frame.width, 1)
             let nx = (smoothedLocation.x - frame.minX) / w
-            viewModel.updateCursorZone(normalizedScreenX: nx)
+            if cursorMovedThisTick {
+                viewModel.updateCursorZone(normalizedScreenX: nx)
+            }
 
             origin.x = min(max(frame.minX, origin.x), frame.maxX - size.width)
             origin.y = min(max(frame.minY, origin.y), frame.maxY - size.height)
@@ -192,5 +259,42 @@ final class OverlayPanelController: NSObject {
         let nsPoint = NSPoint(x: point.x, y: point.y)
         return NSScreen.screens.first { NSMouseInRect(nsPoint, $0.frame, false) }
             ?? NSScreen.main
+    }
+
+    private func updateSpitPanel(on screen: NSScreen?, refreshZOrder: Bool) {
+        guard let screen else {
+            spitPanel.orderOut(nil)
+            // Всегда поднимаем панель с гоблином: иначе после orderOut плевка она может оказаться под чужими окнами и «пропасть».
+            if refreshZOrder {
+                panel.orderFrontRegardless()
+            }
+            return
+        }
+        // Только видимая область (без меню/дока): 0.5×0.5 в SwiftUI = реальный центр экрана для пользователя.
+        let frame = screen.visibleFrame
+        let old = spitPanel.frame
+        if abs(old.origin.x - frame.origin.x) > 0.5
+            || abs(old.origin.y - frame.origin.y) > 0.5
+            || abs(old.size.width - frame.size.width) > 0.5
+            || abs(old.size.height - frame.size.height) > 0.5 {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            spitPanel.setFrame(frame, display: false)
+            CATransaction.commit()
+        }
+
+        viewModel.setSpitPanelContentSize(frame.size)
+
+        guard viewModel.shouldShowSpitOverlay else {
+            spitPanel.orderOut(nil)
+            if refreshZOrder {
+                panel.orderFrontRegardless()
+            }
+            return
+        }
+        if refreshZOrder {
+            spitPanel.orderFrontRegardless()
+            panel.orderFrontRegardless()
+        }
     }
 }

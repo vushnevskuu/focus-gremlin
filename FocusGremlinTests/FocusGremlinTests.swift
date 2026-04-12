@@ -91,6 +91,79 @@ final class FocusClassifierTests: XCTestCase {
     }
 }
 
+@MainActor
+final class CompanionViewModelPageReactionTests: XCTestCase {
+    func testPageReactionRevivesLifecycleAndUsesIdle2() {
+        let viewModel = CompanionViewModel()
+        viewModel.forceLifecycleTerminalForTesting()
+        viewModel.syncFocusOverlayContext(category: .neutral, agentEnabled: true)
+
+        XCTAssertEqual(viewModel.companionLifecycleState, .terminal)
+        XCTAssertFalse(viewModel.shouldShowCompanionSprite)
+
+        viewModel.reactToNewDoomscrollPage(at: Date())
+
+        XCTAssertEqual(viewModel.companionLifecycleState, .active)
+        XCTAssertEqual(viewModel.activeIdleStripFilename, "idle_2.png")
+        XCTAssertTrue(viewModel.transientPageReactionActive)
+        XCTAssertTrue(viewModel.shouldShowCompanionSprite)
+    }
+
+    func testFinalCelebrationRejectsLateDistractingDelivery() async {
+        let viewModel = CompanionViewModel()
+        viewModel.syncFocusOverlayContext(category: .distracting, agentEnabled: true)
+        viewModel.playWorkReturnFinalCelebration()
+
+        let accepted = await viewModel.runLiveDelivery(
+            "still scrolling the same sludge",
+            isDistractionIntervention: true
+        )
+
+        XCTAssertFalse(accepted)
+        XCTAssertTrue(viewModel.workReturnFinalActive)
+        XCTAssertEqual(viewModel.visibleText, "")
+    }
+
+    func testAmbientSpitAddsStainsForOverlay() {
+        let viewModel = CompanionViewModel()
+        viewModel.forceAmbientSpitForTesting()
+
+        XCTAssertTrue(viewModel.ambientSpitActive)
+        XCTAssertFalse(viewModel.spitStains.isEmpty)
+        XCTAssertTrue(viewModel.shouldShowSpitOverlay)
+    }
+
+    func testAmbientSpitStainsSpawnNearCenter() {
+        let viewModel = CompanionViewModel()
+        viewModel.forceAmbientSpitForTesting()
+
+        XCTAssertFalse(viewModel.spitStains.isEmpty)
+        for stain in viewModel.spitStains {
+            XCTAssertTrue((0.45...0.55).contains(stain.normalizedX))
+            XCTAssertTrue((0.44...0.56).contains(stain.normalizedY))
+        }
+    }
+
+    func testFinalCelebrationBeginsSpitDissolve() {
+        let viewModel = CompanionViewModel()
+        viewModel.forceAmbientSpitForTesting()
+
+        viewModel.playWorkReturnFinalCelebration()
+
+        XCTAssertFalse(viewModel.ambientSpitActive)
+        XCTAssertFalse(viewModel.spitStains.isEmpty)
+        XCTAssertTrue(viewModel.spitStains.allSatisfy { $0.phase == .dissolving })
+    }
+
+    func testPageReactionIdle2LeadDelayIsExposedWhileIdle2IsActive() {
+        let viewModel = CompanionViewModel()
+        viewModel.reactToNewDoomscrollPage(at: Date())
+
+        XCTAssertEqual(viewModel.activeIdleStripFilename, "idle_2.png")
+        XCTAssertGreaterThan(viewModel.idle2LeadInDelayForPageReaction(), 0.18)
+    }
+}
+
 final class InterruptionPolicyTests: XCTestCase {
     func testCooldownBlocksRapidFire() {
         var policy = InterruptionPolicy(cooldown: 10, maxPerHour: 10)
@@ -181,6 +254,13 @@ final class MessageSelectorTests: XCTestCase {
         XCTAssertEqual(RecentMessageMemory.normalize(" Привет "), RecentMessageMemory.normalize("привет"))
     }
 
+    func testNormalizeForDedup_IgnoresPunctuationAndCase() {
+        let a = RecentMessageMemory.normalizeForDedup("Same trash again, fool!")
+        let b = RecentMessageMemory.normalizeForDedup("same  TRASH   again fool")
+        XCTAssertEqual(a, b)
+        XCTAssertFalse(a.isEmpty)
+    }
+
     func testLaughLineSkippedForSessionQuoteDedup() {
         XCTAssertTrue(RecentMessageMemory.isLaughOrPureReactionLine("ha ha ha"))
         XCTAssertTrue(RecentMessageMemory.isLaughOrPureReactionLine("pfft"))
@@ -190,6 +270,14 @@ final class MessageSelectorTests: XCTestCase {
         memory.record("youtube again pathetic", trackAsSessionQuote: true)
         XCTAssertFalse(memory.containsSubstantiveSessionDuplicate("ha ha"))
         XCTAssertTrue(memory.containsSubstantiveSessionDuplicate("YouTube again pathetic"))
+    }
+
+    func testNearDuplicateSubstantiveSessionQuotesDetected() {
+        var memory = RecentMessageMemory()
+        memory.record("hacker news graveyard again", trackAsSessionQuote: true)
+
+        XCTAssertTrue(memory.containsNearDuplicateSubstantiveSession("hacker news sludge again"))
+        XCTAssertFalse(memory.containsNearDuplicateSubstantiveSession("subscribe button carnival"))
     }
 
     func testSelectorReturnsNonEmptyLine() {
@@ -266,7 +354,7 @@ final class FocusEngineServiceLogicTests: XCTestCase {
         )
     }
 
-    func testProductiveBrowserNotEligibleForPageAgent() {
+    func testProductiveBrowserStillEligibleForPageAgent() {
         let config = FocusRuleConfiguration(
             productiveBundleIDs: [],
             distractingBundleIDs: [],
@@ -275,7 +363,7 @@ final class FocusEngineServiceLogicTests: XCTestCase {
             distractionTitleMarkers: ["youtube"]
         )
 
-        XCTAssertFalse(
+        XCTAssertTrue(
             FocusEngineService.pageAgentEligible(
                 bundleID: "com.google.Chrome",
                 ruleCategory: .productive,
@@ -287,16 +375,59 @@ final class FocusEngineServiceLogicTests: XCTestCase {
 }
 
 final class FocusSnapshotTests: XCTestCase {
-    func testPageIdentityPrefersURLHostAndPath() {
+    func testPageIdentityIncludesQueryAndTitleWhenAvailable() {
         let snapshot = FocusSnapshot(
             bundleID: "com.google.Chrome",
             windowTitle: "Some title",
-            pageTitle: "Some title",
-            pageURL: "https://www.reddit.com/r/swift/comments/123",
+            pageTitle: "Watch Swift Again",
+            pageURL: "https://www.youtube.com/watch?v=abc123&t=42",
             timestamp: Date()
         )
 
-        XCTAssertEqual(snapshot.pageIdentityKey, "com.google.Chrome\u{1e}reddit.com/r/swift/comments/123")
+        XCTAssertEqual(
+            snapshot.pageIdentityKey,
+            "com.google.Chrome\u{1e}youtube.com/watch?v=abc123&t=42\u{1f}watch swift again"
+        )
+    }
+
+    func testPageNavigationStabilityKeyIgnoresTitle() {
+        let a = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Win A",
+            pageTitle: "First title",
+            pageURL: "https://www.youtube.com/watch?v=abc123",
+            timestamp: Date()
+        )
+        let b = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Win B",
+            pageTitle: "Second title",
+            pageURL: "https://www.youtube.com/watch?v=abc123",
+            timestamp: Date()
+        )
+        XCTAssertEqual(a.pageNavigationStabilityKey, b.pageNavigationStabilityKey)
+        XCTAssertNotEqual(a.pageIdentityKey, b.pageIdentityKey)
+    }
+
+    func testPageNavigationStabilityKeyChangesWhenVisiblePageTextChanges() {
+        let a = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Feed",
+            pageTitle: "Feed",
+            pageURL: "https://example.com/feed",
+            pageSemanticSnippet: "watch later | comments | autoplay",
+            timestamp: Date()
+        )
+        let b = FocusSnapshot(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Feed",
+            pageTitle: "Feed",
+            pageURL: "https://example.com/feed",
+            pageSemanticSnippet: "new channel | sponsor | skip ad",
+            timestamp: Date()
+        )
+
+        XCTAssertNotEqual(a.pageNavigationStabilityKey, b.pageNavigationStabilityKey)
     }
 }
 
@@ -306,9 +437,198 @@ final class GremlinSpeechContextTests: XCTestCase {
         XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "pfft"), .giggle)
     }
 
+    func testMixedLaughLineStillUsesGiggleStyle() {
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "ha another reddit sermon"), .giggle)
+        XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "pfft that subscribe button again"), .giggle)
+    }
+
     func testNegationStillUsesNegationStyle() {
         XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "Don't scroll."), .negation)
         XCTAssertEqual(GremlinSpeechContext.inferSpeechStyle(for: "nope"), .negation)
+    }
+}
+
+final class GremlinPageSkimPromptTests: XCTestCase {
+    func testNewPageSkimPromptUsesPageTitleAndURLHint() {
+        let prompt = GremlinPrompts.newDoomscrollPageSkimPrompt(
+            bundleID: "com.google.Chrome",
+            windowTitle: "Window fallback",
+            pageTitle: "Swift releases melting your focus",
+            pageURL: "https://www.reddit.com/r/swift/comments/12345/releases",
+            pageSemanticSnippet: "Swift 6 release notes | release blockers | benchmarks",
+            hasAttachedScreenshot: false
+        )
+
+        XCTAssertTrue(prompt.contains("Swift releases melting your focus"), prompt)
+        XCTAssertTrue(prompt.contains("reddit.com/r/swift/comments/12345/releases"), prompt)
+        XCTAssertTrue(prompt.contains("Swift 6 release notes"), prompt)
+        XCTAssertTrue(prompt.localizedCaseInsensitiveContains("specific to this page"), prompt)
+    }
+}
+
+@MainActor
+final class GremlinOrchestratorPageChangeTests: XCTestCase {
+    actor QueuedLLMProvider: LLMProvider {
+        private var responses: [String]
+
+        init(responses: [String]) {
+            self.responses = responses
+        }
+
+        func complete(
+            systemPrompt: String,
+            userPrompt: String,
+            jpegImages: [Data],
+            chatModel: String?
+        ) async throws -> String {
+            _ = systemPrompt
+            _ = userPrompt
+            _ = jpegImages
+            _ = chatModel
+            guard !responses.isEmpty else { return "fallback page sludge" }
+            return responses.removeFirst()
+        }
+    }
+
+    func testPageChangeBypassesLLMMinInterval() async {
+        let orchestrator = GremlinOrchestrator(policy: InterruptionPolicy(cooldown: 0, maxPerHour: 10))
+        orchestrator.resetMemoryForTesting()
+
+        let settings = SettingsStore.shared
+        let prevUseLLM = settings.useLLMForLines
+        let prevInterval = settings.llmMinIntervalSeconds
+        let prevVisionConsent = settings.smartVisionConsent
+        defer {
+            settings.useLLMForLines = prevUseLLM
+            settings.llmMinIntervalSeconds = prevInterval
+            settings.smartVisionConsent = prevVisionConsent
+        }
+
+        settings.useLLMForLines = true
+        settings.llmMinIntervalSeconds = 900
+        settings.smartVisionConsent = false
+
+        let llm = QueuedLLMProvider(
+            responses: [
+                "feed sludge again",
+                "another feed sludge"
+            ]
+        )
+
+        let firstContext = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Feed",
+            pageTitle: "Feed",
+            pageURL: "https://example.com/feed",
+            pageSemanticSnippet: nil,
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+        let pageChangeContext = GremlinInterventionContext(
+            trigger: .pageChange,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Another Feed",
+            pageTitle: "Another Feed",
+            pageURL: "https://example.com/feed/next",
+            pageSemanticSnippet: nil,
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+
+        let first = await orchestrator.maybeProduceLine(
+            context: firstContext,
+            settings: settings,
+            llm: llm
+        )
+        let second = await orchestrator.maybeProduceLine(
+            context: pageChangeContext,
+            settings: settings,
+            llm: llm
+        )
+
+        XCTAssertEqual(first, "feed sludge again")
+        XCTAssertFalse(second?.isEmpty ?? true)
+        XCTAssertNotEqual(second, first)
+    }
+
+    func testTextOnlyPathRejectsAnchorlessGenericLineAndRetriesForPageAnchor() async {
+        let orchestrator = GremlinOrchestrator(policy: InterruptionPolicy(cooldown: 0, maxPerHour: 10))
+        orchestrator.resetMemoryForTesting()
+
+        let settings = SettingsStore.shared
+        let prevUseLLM = settings.useLLMForLines
+        let prevInterval = settings.llmMinIntervalSeconds
+        let prevVisionConsent = settings.smartVisionConsent
+        defer {
+            settings.useLLMForLines = prevUseLLM
+            settings.llmMinIntervalSeconds = prevInterval
+            settings.smartVisionConsent = prevVisionConsent
+        }
+
+        settings.useLLMForLines = true
+        settings.llmMinIntervalSeconds = 0
+        settings.smartVisionConsent = false
+
+        let llm = QueuedLLMProvider(
+            responses: [
+                "same sludge again",
+                "hacker news graveyard again"
+            ]
+        )
+
+        let context = GremlinInterventionContext(
+            trigger: .sustained,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Hacker News",
+            pageTitle: nil,
+            pageURL: "https://news.ycombinator.com/news",
+            pageSemanticSnippet: "Show HN | Ask HN | Who is hiring",
+            focusCategory: .distracting,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+
+        let line = await orchestrator.maybeProduceLine(
+            context: context,
+            settings: settings,
+            llm: llm
+        )
+
+        XCTAssertEqual(line, "hacker news graveyard again")
+    }
+
+    func testDecorateLineForDeliveryCanInjectGigglePrefixOnPageChange() {
+        let context = GremlinInterventionContext(
+            trigger: .pageChange,
+            bundleID: "com.google.Chrome",
+            windowTitle: "Another Feed",
+            pageTitle: "Another Feed",
+            pageURL: "https://example.com/feed/next",
+            pageSemanticSnippet: "another feed | autoplay | reactions",
+            focusCategory: .neutral,
+            visionCategory: nil,
+            neuralPageChangeDigest: nil,
+            pointerAccessibilitySummary: nil
+        )
+
+        let decorated = GremlinOrchestrator.decorateLineForDelivery(
+            "another feed sludge",
+            context: context
+        )
+
+        XCTAssertTrue(
+            decorated == "another feed sludge"
+                || decorated.hasPrefix("ha ")
+                || decorated.hasPrefix("pfft ")
+                || decorated.hasPrefix("heh "),
+            decorated
+        )
     }
 }
 
@@ -446,6 +766,24 @@ final class GremlinSpriteActionMappingTests: XCTestCase {
         XCTAssertNotNil(introEnd)
         XCTAssertGreaterThan(introEnd!, 0)
         XCTAssertTrue(seq.frames.prefix(introEnd!).allSatisfy { $0.url.lastPathComponent == "short_phrase.png" })
+        XCTAssertTrue(seq.frames.dropFirst(introEnd!).allSatisfy { $0.url.lastPathComponent == "idle_1.png" })
+    }
+
+    @MainActor
+    func testAmbientSpitUsesSpitSheetThenIdle() throws {
+        let resolver = try GremlinCharacterAnimationResolver()
+        let seq = resolver.resolveFrameSequence(
+            phase: .idle,
+            distractionInterventionActive: false,
+            workReturnFinalActive: false,
+            ambientSpitActive: true,
+            idleStripFilename: "idle_1.png"
+        )
+
+        let introEnd = seq.loopTailStartIndex
+        XCTAssertNotNil(introEnd)
+        XCTAssertGreaterThan(introEnd!, 0)
+        XCTAssertTrue(seq.frames.prefix(introEnd!).allSatisfy { $0.url.lastPathComponent == "spit.png" })
         XCTAssertTrue(seq.frames.dropFirst(introEnd!).allSatisfy { $0.url.lastPathComponent == "idle_1.png" })
     }
 
@@ -597,6 +935,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: nil,
             pageTitle: nil,
             pageURL: "https://www.youtube.com/watch?v=xyz",
+            pageSemanticSnippet: "Recommended | Up next | watch later",
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: nil,
@@ -606,6 +945,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
         XCTAssertTrue(block.contains("Grounding from URL"), block)
         XCTAssertTrue(block.contains("youtube.com/watch"), block)
         XCTAssertTrue(block.contains("Browser page URL:"), block)
+        XCTAssertTrue(block.contains("Recommended"), block)
         XCTAssertFalse(block.localizedCaseInsensitiveContains("window/tab title empty or unavailable"))
     }
 
@@ -616,6 +956,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: "Legacy",
             pageTitle: "   ",
             pageURL: "https://news.ycombinator.com/news",
+            pageSemanticSnippet: "Show HN | Ask HN | Who is hiring",
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: "orange site threads",
@@ -631,6 +972,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
         XCTAssertTrue(prompt.contains("ycombinator.com") || prompt.contains("news.ycombinator"), prompt)
         XCTAssertTrue(prompt.contains("Comments") || prompt.contains("Pointer"), prompt)
         XCTAssertTrue(prompt.contains("orange site threads"), prompt)
+        XCTAssertTrue(prompt.contains("Show HN"), prompt)
     }
 
     @MainActor
@@ -677,6 +1019,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: nil,
             pageTitle: nil,
             pageURL: "https://example.com/video",
+            pageSemanticSnippet: nil,
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: nil,
@@ -697,10 +1040,11 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
     }
 
     @MainActor
-    func testOrchestratorPassesOnlyFullWindowWhenBothJPEGsProvided() async {
+    func testOrchestratorPassesWindowAndPointerJPEGsWhenBothProvided() async {
         final class RecordingLLM: LLMProvider, @unchecked Sendable {
             var lastJPEGCount = 0
             var lastUserMentionsFullWindowFrame = false
+            var lastUserMentionsPointerNeighborhood = false
             func complete(
                 systemPrompt: String,
                 userPrompt: String,
@@ -711,6 +1055,9 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
                 lastUserMentionsFullWindowFrame =
                     userPrompt.localizedCaseInsensitiveContains("frontmost")
                     || userPrompt.localizedCaseInsensitiveContains("full window")
+                lastUserMentionsPointerNeighborhood =
+                    userPrompt.localizedCaseInsensitiveContains("pointer neighborhood")
+                    || userPrompt.localizedCaseInsensitiveContains("hovered/control spot")
                 return "Orange site thread rot"
             }
         }
@@ -742,6 +1089,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: nil,
             pageTitle: nil,
             pageURL: "https://example.com/feed",
+            pageSemanticSnippet: nil,
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: nil,
@@ -757,8 +1105,9 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             screenshotJPEG: windowJPEG,
             cursorNeighborhoodJPEG: cursorJPEG
         )
-        XCTAssertEqual(recorder.lastJPEGCount, 1)
+        XCTAssertEqual(recorder.lastJPEGCount, 2)
         XCTAssertTrue(recorder.lastUserMentionsFullWindowFrame)
+        XCTAssertTrue(recorder.lastUserMentionsPointerNeighborhood)
         XCTAssertFalse(line?.isEmpty ?? true)
     }
 
@@ -769,6 +1118,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: "Tab",
             pageTitle: nil,
             pageURL: "https://reddit.com/r/all",
+            pageSemanticSnippet: "hot posts | upvote | doomscroll",
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: nil,
@@ -784,6 +1134,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
         XCTAssertTrue(prompt.contains("Focused window") || prompt.contains("focused window"), prompt)
         XCTAssertTrue(prompt.contains("Pointer neighborhood") || prompt.contains("pointer neighborhood"), prompt)
         XCTAssertTrue(prompt.contains("primary"), prompt)
+        XCTAssertTrue(prompt.localizedCaseInsensitiveContains("exact hovered/control spot"), prompt)
     }
 
     func testUserPrompt_FullWindowMentionsForegroundFrame() {
@@ -793,6 +1144,7 @@ final class GremlinBrowserContextPipelineTests: XCTestCase {
             windowTitle: "YouTube",
             pageTitle: nil,
             pageURL: "https://youtube.com/watch",
+            pageSemanticSnippet: nil,
             focusCategory: .distracting,
             visionCategory: nil,
             neuralPageChangeDigest: nil,

@@ -59,15 +59,18 @@ final class GremlinCharacterAnimationResolver {
     /// - Parameter streamTailIdleStripFilename: хвост композита «речь → idle» во время `.streaming`. `nil` = тот же лист, что `idleStripFilename` (например `idle_2` при реакции на страницу).
     /// - Parameter useShortPhraseStream: реплика из 1–2 слов — лента `short_phrase` вместо `talking_*` (если не смех).
     /// - Parameter deliverySpeechStyle: при `.giggle` — лента `smile` (важнее короткой фразы).
+    /// - Parameter idleSinglePass: если `true`, фоновый `idle` без зацикливания (один проход листа — реакция на новую ссылку).
     func resolveFrameSequence(
         phase: BubblePhase,
         distractionInterventionActive: Bool,
         workReturnFinalActive: Bool = false,
+        ambientSpitActive: Bool = false,
         talkingStripFilename: String? = nil,
         idleStripFilename: String? = nil,
         streamTailIdleStripFilename: String? = nil,
         useShortPhraseStream: Bool = false,
-        deliverySpeechStyle: GremlinDeliverySpeechStyle = .spatial
+        deliverySpeechStyle: GremlinDeliverySpeechStyle = .spatial,
+        idleSinglePass: Bool = false
     ) -> GremlinResolvedFrameSequence {
         if workReturnFinalActive, phase == .idle {
             if let resolved = resolveTerminalFinalSequence() {
@@ -79,6 +82,12 @@ final class GremlinCharacterAnimationResolver {
         }
         if phase == .dismissing, let resolved = resolveDismissSequence(idleStripFilename: idleStripFilename) {
             return resolved
+        }
+        let idleLoopOverride: Bool? = idleSinglePass ? false : nil
+        if ambientSpitActive,
+           phase == .idle,
+           let composite = resolveAmbientSpitOnceThenIdle(tailIdleFilename: idleStripFilename) {
+            return composite
         }
         if phase == .streaming {
             let tailIdle = streamTailIdleStripFilename ?? idleStripFilename
@@ -112,14 +121,27 @@ final class GremlinCharacterAnimationResolver {
                     return resolved
                 }
             } else if state == .idle {
-                if let resolved = resolveIdleState(preferredStripFilename: ambientIdle) {
+                if let resolved = resolveIdleState(preferredStripFilename: ambientIdle, loopsOverride: idleLoopOverride) {
                     return resolved
                 }
             } else if let resolved = resolveNonTerminalState(state.rawValue) {
                 return resolved
             }
         }
-        return builtInIdle()
+        return builtInIdle(loopsOverride: idleLoopOverride)
+    }
+
+    /// Длительность одного прохода всех кадров выбранного листа `idle` (для таймера после смены URL).
+    func durationOfOneIdleStripPass(preferredStripFilename: String?) -> TimeInterval? {
+        guard let seq = resolveIdleState(preferredStripFilename: preferredStripFilename, loopsOverride: false) else { return nil }
+        return seq.duration
+    }
+
+    /// Длительность интро `spit` в композите (пинг-понг, как у talking), без idle-хвоста.
+    func durationOfOneSpitPass() -> TimeInterval? {
+        guard let spitSeq = resolveState(GremlinSpriteState.spit.rawValue), !spitSeq.frames.isEmpty else { return nil }
+        let intro = mirroredIntroFrames(spitSeq.frames)
+        return Double(intro.count) / max(spitSeq.fps, 0.01)
     }
 
     /// Цепочка состояний для повседневных фаз пузырька. Терминальный `final` здесь не участвует.
@@ -173,7 +195,7 @@ final class GremlinCharacterAnimationResolver {
     }
 
     private func resolveIdleLeadSequence(reversed: Bool, idleStripFilename: String?) -> GremlinResolvedFrameSequence? {
-        guard let seq = resolveIdleState(preferredStripFilename: idleStripFilename) else { return nil }
+        guard let seq = resolveIdleState(preferredStripFilename: idleStripFilename, loopsOverride: nil) else { return nil }
         let leadCount = min(Self.transitionLeadFrameCount, seq.frameCount)
         guard leadCount > 0 else { return nil }
         let lead = Array(seq.frames.prefix(leadCount))
@@ -202,7 +224,8 @@ final class GremlinCharacterAnimationResolver {
     }
 
     /// Один лист `idle` из манифеста; при `nil` — первый файл (стабильные тесты и fallback).
-    private func resolveIdleState(preferredStripFilename: String?) -> GremlinResolvedFrameSequence? {
+    /// - Parameter loopsOverride: `false` — один проход без цикла; `nil` — как в манифесте.
+    private func resolveIdleState(preferredStripFilename: String?, loopsOverride: Bool? = nil) -> GremlinResolvedFrameSequence? {
         guard let def = manifest.states[GremlinSpriteState.idle.rawValue], let first = def.files.first else { return nil }
         let names: [String]
         if let p = preferredStripFilename, def.files.contains(p) {
@@ -210,13 +233,21 @@ final class GremlinCharacterAnimationResolver {
         } else {
             names = [first]
         }
-        return buildFrames(for: def, fileNames: names)
+        guard let built = buildFrames(for: def, fileNames: names) else { return nil }
+        guard let o = loopsOverride else { return built }
+        return GremlinResolvedFrameSequence(
+            frames: built.frames,
+            fps: built.fps,
+            loops: o,
+            loopTailStartIndex: built.loopTailStartIndex,
+            tailFps: built.tailFps
+        )
     }
 
     /// Смех: один раз `smile` вперёд и сразу назад, затем idle (хвост — `tailIdleFilename`, обычно idle_1).
     private func resolveStreamingSmileOnceThenIdle(tailIdleFilename: String?) -> GremlinResolvedFrameSequence? {
         guard let smileSeq = resolveState(GremlinSpriteState.smile.rawValue),
-              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename),
+              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename, loopsOverride: nil),
               !smileSeq.frames.isEmpty,
               !idleSeq.frames.isEmpty
         else { return nil }
@@ -233,10 +264,30 @@ final class GremlinCharacterAnimationResolver {
         )
     }
 
+    /// Плевок между репликами: лента `spit` **вперёд и назад** (как talking), затем цикл idle.
+    private func resolveAmbientSpitOnceThenIdle(tailIdleFilename: String?) -> GremlinResolvedFrameSequence? {
+        guard let spitSeq = resolveState(GremlinSpriteState.spit.rawValue),
+              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename, loopsOverride: nil),
+              !spitSeq.frames.isEmpty,
+              !idleSeq.frames.isEmpty
+        else { return nil }
+        let introFrames = mirroredIntroFrames(spitSeq.frames)
+        let introFps = max(spitSeq.fps, 0.01)
+        let tailFps = max(idleSeq.fps, 0.01)
+        let tailStart = introFrames.count
+        return GremlinResolvedFrameSequence(
+            frames: introFrames + idleSeq.frames,
+            fps: introFps,
+            loops: true,
+            loopTailStartIndex: tailStart,
+            tailFps: tailFps
+        )
+    }
+
     /// Печать 1–2 слова: один раз `short_phrase`, затем idle.
     private func resolveStreamingShortPhraseOnceThenIdle(tailIdleFilename: String?) -> GremlinResolvedFrameSequence? {
         guard let phraseSeq = resolveState(GremlinSpriteState.shortPhrase.rawValue),
-              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename),
+              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename, loopsOverride: nil),
               !phraseSeq.frames.isEmpty,
               !idleSeq.frames.isEmpty
         else { return nil }
@@ -255,7 +306,7 @@ final class GremlinCharacterAnimationResolver {
     /// Печать: один раз вся talking-лента (выбранный лист) вперёд и сразу назад, дальше только idle по кругу.
     private func resolveStreamingTalkingOnceThenIdle(talkingStripFilename: String?, tailIdleFilename: String?) -> GremlinResolvedFrameSequence? {
         guard let talkingSeq = resolveTalkingState(preferredStripFilename: talkingStripFilename),
-              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename),
+              let idleSeq = resolveIdleState(preferredStripFilename: tailIdleFilename, loopsOverride: nil),
               !talkingSeq.frames.isEmpty,
               !idleSeq.frames.isEmpty
         else { return nil }
@@ -273,7 +324,12 @@ final class GremlinCharacterAnimationResolver {
     }
 
     private func mirroredIntroFrames(_ frames: [GremlinSpriteFrameRef]) -> [GremlinSpriteFrameRef] {
-        guard frames.count > 1 else { return frames }
+        guard !frames.isEmpty else { return frames }
+        if frames.count == 1 {
+            // Одна ячейка в ленте: «туда-обратно» дало бы один кадр ≈ 1/fps — визуально «не играет».
+            let f = frames[0]
+            return [f, f, f, f]
+        }
         return frames + Array(frames.dropLast().reversed())
     }
 
@@ -305,7 +361,7 @@ final class GremlinCharacterAnimationResolver {
         return nil
     }
 
-    private func builtInIdle() -> GremlinResolvedFrameSequence {
+    private func builtInIdle(loopsOverride: Bool? = nil) -> GremlinResolvedFrameSequence {
         let names = ["idle_1.png"]
         var frames: [GremlinSpriteFrameRef] = []
         for name in names {
@@ -316,6 +372,7 @@ final class GremlinCharacterAnimationResolver {
                 frames.append(GremlinSpriteFrameRef(url: url, stripCellIndex: c, stripCellCount: n))
             }
         }
-        return GremlinResolvedFrameSequence(frames: frames, fps: 12, loops: true)
+        let loop = loopsOverride ?? true
+        return GremlinResolvedFrameSequence(frames: frames, fps: 12, loops: loop)
     }
 }

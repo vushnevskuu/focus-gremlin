@@ -8,6 +8,8 @@ struct SettingsRootView: View {
     @State private var screenGrantedSnapshot = false
     @State private var scrollMonitorActiveSnapshot = false
     @State private var lastActivePermissionRefresh = Date.distantPast
+    @State private var openAIKeyDraft = ""
+    @State private var anthropicKeyDraft = ""
 
     var body: some View {
         Form {
@@ -25,10 +27,10 @@ struct SettingsRootView: View {
             }
 
             Section("Лимиты") {
-                Stepper(value: $settings.cooldownSeconds, in: 8...600, step: 1) {
+                Stepper(value: $settings.cooldownSeconds, in: 5...600, step: 1) {
                     Text("Кулдаун: \(Int(settings.cooldownSeconds)) с")
                 }
-                Stepper(value: $settings.maxInterruptionsPerHour, in: 1...60) {
+                Stepper(value: $settings.maxInterruptionsPerHour, in: 1...240) {
                     Text("Макс. вмешательств в час: \(settings.maxInterruptionsPerHour)")
                 }
                 Stepper(value: $settings.distractionSecondsBeforeNudge, in: 8...600, step: 1) {
@@ -62,21 +64,63 @@ struct SettingsRootView: View {
                 .frame(minHeight: 70)
             }
 
-            Section("Локальная модель (Ollama)") {
+            Section("Нейросеть") {
+                Picker("Провайдер", selection: $settings.llmBackend) {
+                    ForEach(GremlinLLMBackend.allCases, id: \.self) { b in
+                        Text(b.settingsLabel).tag(b)
+                    }
+                }
                 Toggle("Использовать LLM для фраз", isOn: $settings.useLLMForLines)
-                TextField("Базовый URL", text: $settings.ollamaBaseURL)
-                TextField("Модель", text: $settings.ollamaModel)
-                Stepper(value: $settings.llmMinIntervalSeconds, in: 1...900, step: 1) {
+
+                if settings.llmBackend == .ollama {
+                    TextField("Базовый URL Ollama", text: $settings.ollamaBaseURL)
+                    TextField("Модель (текст)", text: $settings.ollamaModel)
+                } else if settings.llmBackend == .openAICompatible {
+                    TextField("Базовый URL (с /v1)", text: $settings.cloudAPIBaseURL)
+                    TextField("Модель (желательно vision, если шлём JPEG)", text: $settings.cloudChatModel)
+                    SecureField("API-ключ (не сохраняется в JSON)", text: $openAIKeyDraft)
+                    Button("Сохранить ключ OpenAI / совместимого API") {
+                        SecureLLMAPIKey.save(openAIKeyDraft, slot: .openAICompatible)
+                        openAIKeyDraft = ""
+                    }
+                    Text(openAICompatibleKeyStatus)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    TextField("Модель Claude", text: $settings.cloudChatModel)
+                    SecureField("API-ключ Anthropic", text: $anthropicKeyDraft)
+                    Button("Сохранить ключ Anthropic") {
+                        SecureLLMAPIKey.save(anthropicKeyDraft, slot: .anthropic)
+                        anthropicKeyDraft = ""
+                    }
+                    Text(anthropicKeyStatus)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Stepper(value: $settings.llmMinIntervalSeconds, in: 3...900, step: 1) {
                     Text("Мин. интервал LLM: \(Int(settings.llmMinIntervalSeconds)) с")
                 }
                 Text(settings.gremlinLLMDiagnosticLine)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Button("Проверить соединение с Ollama") {
-                    Task { await settings.runGremlinOllamaSmokeTest() }
+                Button("Проверить соединение") {
+                    Task { await settings.runGremlinLLMSmokeTest() }
                 }
-                Text("Повторяющиеся короткие фразы обычно значат: не запущен `ollama serve`, нет модели (`ollama pull …`) или неверное имя в поле «Модель».")
+                Text(
+                    "С **картинкой** сейчас один HTTP-запрос: в одном сообщении и текст, и JPEG (multimodal). Отдельный режим «два запроса» (сначала описание экрана, потом реплика) в приложении не включён."
+                )
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(
+                    "Классификация Smart Mode по-прежнему идёт в **локальную** Ollama (`Vision-модель` ниже), независимо от провайдера реплик."
+                )
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Пока не прошёл «Мин. интервал LLM», реплика **не показывается** (никаких заплаток шаблонами). При Ollama чаще всего сбой — не запущен `ollama serve`, нет модели или неверное имя; в облаке — URL, модель и ключ в связке ключей.")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -109,7 +153,7 @@ struct SettingsRootView: View {
                             refreshPermissionSnapshots()
                         }
                     }
-                Stepper(value: $settings.smartSamplingIntervalSeconds, in: 25...240, step: 5) {
+                Stepper(value: $settings.smartSamplingIntervalSeconds, in: 5...240, step: 1) {
                     Text("Интервал семплинга: \(Int(settings.smartSamplingIntervalSeconds)) с")
                 }
                 TextField("Vision-модель Ollama", text: $settings.smartVisionModel)
@@ -124,7 +168,7 @@ struct SettingsRootView: View {
                 Button("Настройки → Запись экрана") {
                     PermissionGate.openPrivacyPane(anchor: "ScreenCapture")
                 }
-                Text("Нужна vision-модель (`ollama pull llava` и т.п.). При согласии гоблин при вмешательстве делает **свежий** кадр и шлёт его в эту же модель — реплика опирается на экран, а не только на заголовок окна. Кадры по умолчанию не пишутся на диск.")
+                Text("Нужна vision-модель (`ollama pull llava` и т.п.). Интервал семплинга обновляет классификацию экрана для движка; при вмешательстве гоблин всё равно делает **свежий** кадр окна в LLM. Реплики до ~12 слов; кадры по умолчанию не пишутся на диск.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -188,6 +232,16 @@ struct SettingsRootView: View {
             lastActivePermissionRefresh = now
             refreshPermissionSnapshots()
         }
+    }
+
+    private var openAICompatibleKeyStatus: String {
+        let has = (SecureLLMAPIKey.read(slot: .openAICompatible)?.isEmpty == false)
+        return has ? "Ключ в связке ключей задан." : "Ключ в связке ключей отсутствует."
+    }
+
+    private var anthropicKeyStatus: String {
+        let has = (SecureLLMAPIKey.read(slot: .anthropic)?.isEmpty == false)
+        return has ? "Ключ в связке ключей задан." : "Ключ в связке ключей отсутствует."
     }
 
     private func refreshPermissionSnapshots() {

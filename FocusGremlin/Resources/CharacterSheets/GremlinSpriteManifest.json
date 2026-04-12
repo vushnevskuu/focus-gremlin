@@ -6,7 +6,10 @@
   "stripCellsDefault": 24,
   "stripCellsByFile": {
     "final_1.png": 23,
-    "idle_1.png": 24
+    "idle_1.png": 24,
+    "idle_2.png": 24,
+    "smile.png": 24,
+    "spit.png": 24
   },
   "horizontalFlipStripByFile": {
     "idle_1.png": true
@@ -21,6 +24,11 @@
       "files": ["talking_1.png", "talking_2.png", "talking_3.png"],
       "fps": 14,
       "loop": true
+    },
+    "spit": {
+      "files": ["spit.png"],
+      "fps": 18,
+      "loop": false
     },
     "short_phrase": {
       "files": ["short_phrase.png"],
@@ -40,6 +48,7 @@
   },
   "fallbacks": {
     "talking": "idle",
+    "spit": "idle",
     "short_phrase": "talking",
     "smile": "talking",
     "final": "talking"
@@ -47,6 +56,7 @@
   "behaviorMapping": {
     "idle": "persistent presence / idle loops only (never final)",
     "talking": "reactions / trash-talk / speech (never final)",
+    "spit": "ambient spit between quotes: one pass, then back to idle",
     "short_phrase": "1–2 word replies only during stream composite (never final)",
     "smile": "laugh / giggle lines during stream composite (never final)",
     "final": "terminal one-shot only after scenario completion (work return); not used as idle/talking fallback in code"

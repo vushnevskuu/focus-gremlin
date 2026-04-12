@@ -9,6 +9,7 @@ final class GremlinTypingVoicePlayer {
     private var typingPlayer: AVAudioPlayer?
     private var shortWordsPlayer: AVAudioPlayer?
     private var gigglePlayer: AVAudioPlayer?
+    private var spitPlayer: AVAudioPlayer?
 
     private init() {}
 
@@ -48,6 +49,19 @@ final class GremlinTypingVoicePlayer {
         gigglePlayer?.play()
     }
 
+    /// Короткий харчок/плевок между цитатами.
+    func playSpitOnceIfAllowed(soundsEnabled: Bool) {
+        stop()
+        guard soundsEnabled else { return }
+        guard let url = Bundle.main.url(forResource: "gremlin_spit", withExtension: "mp3") else {
+            AppLogger.app.debug("gremlin_spit.mp3 missing from bundle")
+            return
+        }
+        spitPlayer = makePlayer(url: url)
+        spitPlayer?.volume = 0.98
+        spitPlayer?.play()
+    }
+
     func stop() {
         typingPlayer?.stop()
         typingPlayer = nil
@@ -55,6 +69,8 @@ final class GremlinTypingVoicePlayer {
         shortWordsPlayer = nil
         gigglePlayer?.stop()
         gigglePlayer = nil
+        spitPlayer?.stop()
+        spitPlayer = nil
     }
 
     private func makePlayer(url: URL) -> AVAudioPlayer? {

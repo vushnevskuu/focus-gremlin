@@ -9,35 +9,35 @@
 /* Begin PBXBuildFile section */
 		0176605673F0EC5B3435FC0C /* OllamaProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */; };
 		018FB01EB02193AEABA07E2E /* CompanionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */; };
+		03BA897FA1F0DB77F196FD13 /* GremlinLLMProviderFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBDE8596FA411960F0A32FA /* GremlinLLMProviderFactory.swift */; };
 		05516BC03A3D153B7CAC3968 /* final_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 1B580CC96A94E2E09695126E /* final_1.png */; };
-		F1E2D3C4B5A69788796A5B5A /* short_phrase.png in Resources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788796A5B5B /* short_phrase.png */; };
-		M1S2M3L4E5P6N7G8 /* smile.png in Resources */ = {isa = PBXBuildFile; fileRef = M1S2M3L4E5P6N7G9 /* smile.png */; };
 		06B80062C8F7BFE10591FC42 /* GremlinSpriteStripNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */; };
 		0B0FC3FF3E611E3B482A6DB0 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */; };
 		18A7A2D9D90D89953E035CAE /* GremlinCharacterAnimationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B3CD49E38F80208AB776A2 /* GremlinCharacterAnimationResolver.swift */; };
-		F1E2D3C4B5A69788796A5B4C /* GremlinCompanionSpriteStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D1C3B4A5969788796A5B4C /* GremlinCompanionSpriteStateMachine.swift */; };
 		1B4A295A647C13F9F384CEE6 /* GremlinSpriteManifestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33076E5F8374E27394A331B /* GremlinSpriteManifestModels.swift */; };
 		1B54D34E1E020C69E54BB19A /* RecentMessageMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */; };
 		1BFD34FD1B72259543139CD9 /* talking_3.png in Resources */ = {isa = PBXBuildFile; fileRef = FBF1D3DE4AB679DF1A244669 /* talking_3.png */; };
 		1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */; };
-		F1E2D3C4B5A69788796A5B4D /* GremlinTypingVoicePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E2D3C4B5A69788796A5B4C /* GremlinTypingVoicePlayer.swift */; };
-		C1E2F3A4B5C60718293A4B5C5 /* gremlin_typing_voice.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C60718293A4B5C6 /* gremlin_typing_voice.mp3 */; };
-		B2C3D4E5F60718293A4B5C0D /* gremlin_short_words.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C0E /* gremlin_short_words.mp3 */; };
-		G1G2G3G4G5G6G7G8G9H0 /* gremlin_giggle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = G1G2G3G4G5G6G7G8G9H1 /* gremlin_giggle.mp3 */; };
 		20AA3A1F8FF66D2B35C3DAA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325955074560BE90B2D227E1 /* AppDelegate.swift */; };
 		23A0C012F1E95780129FABEF /* MLXProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */; };
+		243A0A4E85800FEDDB3EEF4C /* CursorHoverInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F74776B1776EB321E6886F /* CursorHoverInspector.swift */; };
+		24BA74AB0D7C2F0FEB5BE6E2 /* spit.png in Resources */ = {isa = PBXBuildFile; fileRef = 2EB155B15FEABC4580CA71F9 /* spit.png */; };
 		25E6D8D089E5AE9418552AA7 /* GremlinSpriteState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A2B59F60D8D0CAAD546C6E /* GremlinSpriteState.swift */; };
+		2BD89D850016764393764A66 /* GremlinNativeSequencePlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E9B693DE5ED854D4325281 /* GremlinNativeSequencePlayerView.swift */; };
+		30062D7787B8E33558AFB3CF /* SecureLLMAPIKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E6C158B92C8C177B9F24D8 /* SecureLLMAPIKey.swift */; };
+		306CB729290DBFA517A98C93 /* idle_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 1E60DDEDEAF0012C323CF124 /* idle_2.png */; };
 		3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6967F23C4461368579ED008 /* GremlinTalkingRightSpriteView.swift */; };
 		32252E82A4BF6F30F54AA209 /* CompanionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */; };
 		360DFB1DEED27451B27C2EDA /* ScreenCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759E974247F7AFF6E72ADA0D /* ScreenCaptureService.swift */; };
+		36BB71E3EAB50F67E7CAD1D2 /* GoblinSpitOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50FBBBE5629D455ACF6DF56 /* GoblinSpitOverlayView.swift */; };
 		376B54EBD95DE7567A0D6843 /* MockLLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F36DF62341D41F9A79798044 /* MockLLMProvider.swift */; };
 		37CB6B2CD92E13BA2E065A6C /* OllamaVisionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */; };
 		3AD64D6105D2ED5CE9CB320E /* GremlinSpriteThumbnailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4658ACB2923A75258AD916 /* GremlinSpriteThumbnailLoader.swift */; };
-		C91E4A8B0732D5F64E1A2B3C /* GremlinSpriteSheetGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81D397A0629C4E53D0A1B2C /* GremlinSpriteSheetGeometry.swift */; };
 		4075F28EF60A028905F26878 /* SmartCategoryMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */; };
 		42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */; };
 		44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */; };
 		4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401567CBCF520536A765E924 /* TypingDotsView.swift */; };
+		4C2B004BE2CB618584C6C3C7 /* gremlin_spit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 624451B1D178B0C34E9FFAFA /* gremlin_spit.mp3 */; };
 		4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2644C4E5619AD2780134182F /* AppLogger.swift */; };
 		506E1C6AF2B62362A7341241 /* talking_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 8EF42499DEFB1BE0502D93CA /* talking_1.png */; };
 		518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */; };
@@ -46,36 +46,44 @@
 		534C68CE9D924D6384AEC069 /* SmartModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */; };
 		5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */; };
 		58CA8D93F324EF65CB730F39 /* GremlinSpeechContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */; };
+		5A0E2C93F88F3C1722BB0F57 /* AnthropicMessagesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9088F72F28363FE5D9F57C51 /* AnthropicMessagesProvider.swift */; };
 		5FC535569B9AD0CF35723B76 /* GremlinSpriteCharacterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1789929C0694F4BE7AACBF5 /* GremlinSpriteCharacterView.swift */; };
 		60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */; };
+		648C6A27AEDA639210E5F6A9 /* short_phrase.png in Resources */ = {isa = PBXBuildFile; fileRef = 93588B127AAD444D09AA395A /* short_phrase.png */; };
+		65EB6065D07C4BA76471EF01 /* gremlin_short_words.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 24210291BC25B74C4AD6B359 /* gremlin_short_words.mp3 */; };
 		66A0B96A70EF1C6560C17A61 /* GremlinDiscreteFrameImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC8FAC560BD7355AFFB9444 /* GremlinDiscreteFrameImageView.swift */; };
-		E7A1C9034B2D45678890ABCD /* GremlinNativeSequencePlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B2D0145C3E56789901BCDE /* GremlinNativeSequencePlayerView.swift */; };
 		67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */; };
+		67EF5BCA366ECD73F44D94A9 /* GremlinCompanionSpriteStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 157620D113B2E5116234E83F /* GremlinCompanionSpriteStateMachine.swift */; };
+		67F3B8F07BC76C0D8500DF6F /* smile.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B1622D37563234EBF8BDCEF /* smile.png */; };
+		6919D0991ADF78CC73DFD07D /* GremlinTypingVoicePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6644AEC5BA1866539180545 /* GremlinTypingVoicePlayer.swift */; };
+		694D8FD7527FC67A207EEB0F /* OpenAICompatibleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4948BB3336BD7E5C36E07ECB /* OpenAICompatibleProvider.swift */; };
 		6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */; };
 		706A689AAD4476F268744AF1 /* GremlinDismissSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */; };
+		80B6A1E4079208C2154A2207 /* gremlin_giggle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 09D7129DDEBD2F50FF701940 /* gremlin_giggle.mp3 */; };
 		870C452BD27FDC24E92E58E8 /* talking_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 26BEA2C0CC7EE482445F75E5 /* talking_2.png */; };
 		87863A9841AA283D3958631A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A88B05432F185EDCDD95A2 /* OnboardingView.swift */; };
 		87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */; };
+		90D9D503417743CD8C148703 /* GremlinLLMBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A565A92A254234CE32236565 /* GremlinLLMBackend.swift */; };
 		938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */; };
 		9CDDB66360CB123E6F7293BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F86C65E7B49580589DEB9818 /* Assets.xcassets */; };
 		A20D8D39ABA7F37236612112 /* MessageSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3B91CF0737673B66F32633 /* MessageSelector.swift */; };
 		A4E7D99CBD56BD29D5D64512 /* WindowContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */; };
-		F1E2D3C4B5A69788796AFFAC /* CursorHoverInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788796AFFAB /* CursorHoverInspector.swift */; };
 		BA5016854CDD32BD104CE66E /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */; };
 		C3E730BCEABEE664745DE18C /* idle_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 52BA35BDD806D7AFEFBF83EE /* idle_1.png */; };
-		D4E5F60718293A4B5C6D7E8F0 /* idle_2.png in Resources */ = {isa = PBXBuildFile; fileRef = D4E5F60718293A4B5C6D7E8F1 /* idle_2.png */; };
 		C680B0B95B319501F0BE06A5 /* ScrollWheelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */; };
 		C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02397BEF3E9784FE6C995AFD /* LLMProvider.swift */; };
+		CA21ABF150018CCA437E50E3 /* GremlinContextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E34B8857EB9D26202394745 /* GremlinContextBuilder.swift */; };
 		CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3854F649018FB4932730A208 /* GremlinOrchestrator.swift */; };
 		DAB4FCCE37A93BA46C59C8B9 /* GremlinTalkingNegateSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */; };
 		DC53473A608FA4DE9FED2004 /* CompanionBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */; };
 		DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */; };
 		DFA914077AF31666E6FB0CE8 /* OverlayPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E049620BA44901C27E77F5 /* OverlayPanelController.swift */; };
+		E14ACD011C95802417B5FAB8 /* gremlin_typing_voice.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1EC6FE776B98E7DB416FE99E /* gremlin_typing_voice.mp3 */; };
 		E27EB2F5905380D4295F2BFD /* RootShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1E4AD36F892B3BBED922BC /* RootShellView.swift */; };
 		E5B0D4B959D9C0BB078D7F6B /* AppSwitchHysteresis.swift in Sources */ = {isa = PBXBuildFile; fileRef = D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */; };
+		EA4A1583598E69F9CE158258 /* GremlinSpriteSheetGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588B5053CB08C291D2E447F3 /* GremlinSpriteSheetGeometry.swift */; };
 		F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */; };
 		F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */; };
-		E1F2A3B4C5D60718293A4B5C6 /* GremlinContextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C9B8A79685746352413029 /* GremlinContextBuilder.swift */; };
 		FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,22 +100,23 @@
 /* Begin PBXFileReference section */
 		00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinApp.swift; sourceTree = "<group>"; };
 		02397BEF3E9784FE6C995AFD /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
+		09D7129DDEBD2F50FF701940 /* gremlin_giggle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_giggle.mp3; sourceTree = "<group>"; };
 		0C62449ADE41FC15474E104B /* TemplatePhraseBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePhraseBank.swift; sourceTree = "<group>"; };
 		0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
-		E1E2D3C4B5A69788796A5B4C /* GremlinTypingVoicePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTypingVoicePlayer.swift; sourceTree = "<group>"; };
-		D1E2F3A4B5C60718293A4B5C6 /* gremlin_typing_voice.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_typing_voice.mp3; sourceTree = "<group>"; };
-		B2C3D4E5F60718293A4B5C0E /* gremlin_short_words.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_short_words.mp3; sourceTree = "<group>"; };
-		G1G2G3G4G5G6G7G8G9H1 /* gremlin_giggle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_giggle.mp3; sourceTree = "<group>"; };
+		157620D113B2E5116234E83F /* GremlinCompanionSpriteStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinCompanionSpriteStateMachine.swift; sourceTree = "<group>"; };
 		1B580CC96A94E2E09695126E /* final_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = final_1.png; sourceTree = "<group>"; };
-		F1E2D3C4B5A69788796A5B5B /* short_phrase.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = short_phrase.png; sourceTree = "<group>"; };
-		M1S2M3L4E5P6N7G9 /* smile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smile.png; sourceTree = "<group>"; };
+		1BBDE8596FA411960F0A32FA /* GremlinLLMProviderFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinLLMProviderFactory.swift; sourceTree = "<group>"; };
+		1E60DDEDEAF0012C323CF124 /* idle_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = idle_2.png; sourceTree = "<group>"; };
+		1EC6FE776B98E7DB416FE99E /* gremlin_typing_voice.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_typing_voice.mp3; sourceTree = "<group>"; };
 		22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaProvider.swift; sourceTree = "<group>"; };
 		22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollSessionTracker.swift; sourceTree = "<group>"; };
+		24210291BC25B74C4AD6B359 /* gremlin_short_words.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_short_words.mp3; sourceTree = "<group>"; };
 		25D8F1B1E3E3D8FCC7E79375 /* GremlinTypingSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTypingSpriteView.swift; sourceTree = "<group>"; };
 		2644C4E5619AD2780134182F /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		26BEA2C0CC7EE482445F75E5 /* talking_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = talking_2.png; sourceTree = "<group>"; };
 		26E11D6695FD8564FFEAB2D3 /* OllamaVisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaVisionClassifier.swift; sourceTree = "<group>"; };
 		2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusClassifier.swift; sourceTree = "<group>"; };
+		2EB155B15FEABC4580CA71F9 /* spit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = spit.png; sourceTree = "<group>"; };
 		2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinDismissSpriteView.swift; sourceTree = "<group>"; };
 		325955074560BE90B2D227E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3546022A915B7D346E434526 /* GremlinTalkingNegateSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingNegateSpriteView.swift; sourceTree = "<group>"; };
@@ -115,14 +124,17 @@
 		3D0CEFD7B5FE71A241B49D60 /* RecentMessageMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessageMemory.swift; sourceTree = "<group>"; };
 		4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinIdleSpriteView.swift; sourceTree = "<group>"; };
 		401567CBCF520536A765E924 /* TypingDotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingDotsView.swift; sourceTree = "<group>"; };
+		40E6C158B92C8C177B9F24D8 /* SecureLLMAPIKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureLLMAPIKey.swift; sourceTree = "<group>"; };
 		42A2B59F60D8D0CAAD546C6E /* GremlinSpriteState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteState.swift; sourceTree = "<group>"; };
+		48E9B693DE5ED854D4325281 /* GremlinNativeSequencePlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinNativeSequencePlayerView.swift; sourceTree = "<group>"; };
+		4948BB3336BD7E5C36E07ECB /* OpenAICompatibleProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleProvider.swift; sourceTree = "<group>"; };
 		4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		4D4658ACB2923A75258AD916 /* GremlinSpriteThumbnailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteThumbnailLoader.swift; sourceTree = "<group>"; };
-		B81D397A0629C4E53D0A1B2C /* GremlinSpriteSheetGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteSheetGeometry.swift; sourceTree = "<group>"; };
 		52BA35BDD806D7AFEFBF83EE /* idle_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = idle_1.png; sourceTree = "<group>"; };
-		D4E5F60718293A4B5C6D7E8F1 /* idle_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = idle_2.png; sourceTree = "<group>"; };
+		588B5053CB08C291D2E447F3 /* GremlinSpriteSheetGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteSheetGeometry.swift; sourceTree = "<group>"; };
 		5A771457667A29DA7C98FAA4 /* GremlinSpriteManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GremlinSpriteManifest.json; sourceTree = "<group>"; };
 		5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTypes.swift; sourceTree = "<group>"; };
+		624451B1D178B0C34E9FFAFA /* gremlin_spit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gremlin_spit.mp3; sourceTree = "<group>"; };
 		6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollWheelMonitor.swift; sourceTree = "<group>"; };
 		72A88B05432F185EDCDD95A2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		72E049620BA44901C27E77F5 /* OverlayPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelController.swift; sourceTree = "<group>"; };
@@ -131,23 +143,26 @@
 		8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusEngineService.swift; sourceTree = "<group>"; };
 		866A36932D1955A4A07395F3 /* FocusGremlin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusGremlin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BC8FAC560BD7355AFFB9444 /* GremlinDiscreteFrameImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinDiscreteFrameImageView.swift; sourceTree = "<group>"; };
-		F8B2D0145C3E56789901BCDE /* GremlinNativeSequencePlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinNativeSequencePlayerView.swift; sourceTree = "<group>"; };
 		8EF42499DEFB1BE0502D93CA /* talking_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = talking_1.png; sourceTree = "<group>"; };
+		9088F72F28363FE5D9F57C51 /* AnthropicMessagesProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicMessagesProvider.swift; sourceTree = "<group>"; };
 		9286B2D2646EF9083F896A87 /* InterruptionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterruptionPolicy.swift; sourceTree = "<group>"; };
 		92B3CD49E38F80208AB776A2 /* GremlinCharacterAnimationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinCharacterAnimationResolver.swift; sourceTree = "<group>"; };
-		E2D1C3B4A5969788796A5B4C /* GremlinCompanionSpriteStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinCompanionSpriteStateMachine.swift; sourceTree = "<group>"; };
+		93588B127AAD444D09AA395A /* short_phrase.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = short_phrase.png; sourceTree = "<group>"; };
+		9B1622D37563234EBF8BDCEF /* smile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smile.png; sourceTree = "<group>"; };
 		9BB29EBD68AF6187BAEAA0ED /* CompanionSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSession.swift; sourceTree = "<group>"; };
 		9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinPrompts.swift; sourceTree = "<group>"; };
-		D0C9B8A79685746352413029 /* GremlinContextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinContextBuilder.swift; sourceTree = "<group>"; };
+		9E34B8857EB9D26202394745 /* GremlinContextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinContextBuilder.swift; sourceTree = "<group>"; };
 		A1789929C0694F4BE7AACBF5 /* GremlinSpriteCharacterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteCharacterView.swift; sourceTree = "<group>"; };
 		A33076E5F8374E27394A331B /* GremlinSpriteManifestModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteManifestModels.swift; sourceTree = "<group>"; };
+		A50FBBBE5629D455ACF6DF56 /* GoblinSpitOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoblinSpitOverlayView.swift; sourceTree = "<group>"; };
+		A565A92A254234CE32236565 /* GremlinLLMBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinLLMBackend.swift; sourceTree = "<group>"; };
 		A6A6BB7B46EB133CECDEEF4C /* SmartModeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeController.swift; sourceTree = "<group>"; };
 		AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteStripNativeView.swift; sourceTree = "<group>"; };
 		AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextProvider.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A69788796AFFAB /* CursorHoverInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHoverInspector.swift; sourceTree = "<group>"; };
 		B5E0842A39A2576DF9AB08BD /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		B6F74776B1776EB321E6886F /* CursorHoverInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHoverInspector.swift; sourceTree = "<group>"; };
 		BA1D909D7B7353C829693857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BC1E4AD36F892B3BBED922BC /* RootShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootShellView.swift; sourceTree = "<group>"; };
 		D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchHysteresis.swift; sourceTree = "<group>"; };
@@ -155,6 +170,7 @@
 		DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXProvider.swift; sourceTree = "<group>"; };
 		DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTalkingCenterSpriteView.swift; sourceTree = "<group>"; };
 		E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
+		E6644AEC5BA1866539180545 /* GremlinTypingVoicePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTypingVoicePlayer.swift; sourceTree = "<group>"; };
 		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
 		EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpeechContext.swift; sourceTree = "<group>"; };
 		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
@@ -170,9 +186,10 @@
 		10553630EEC4BD1C5D93D6C7 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D1E2F3A4B5C60718293A4B5C6 /* gremlin_typing_voice.mp3 */,
-				B2C3D4E5F60718293A4B5C0E /* gremlin_short_words.mp3 */,
-				G1G2G3G4G5G6G7G8G9H1 /* gremlin_giggle.mp3 */,
+				09D7129DDEBD2F50FF701940 /* gremlin_giggle.mp3 */,
+				24210291BC25B74C4AD6B359 /* gremlin_short_words.mp3 */,
+				624451B1D178B0C34E9FFAFA /* gremlin_spit.mp3 */,
+				1EC6FE776B98E7DB416FE99E /* gremlin_typing_voice.mp3 */,
 				DB46EF602486639B34E6724F /* CharacterSheets */,
 			);
 			path = Resources;
@@ -245,10 +262,10 @@
 			children = (
 				2644C4E5619AD2780134182F /* AppLogger.swift */,
 				9DDFED1655CFFA87ACB0C240 /* FeatureFlags.swift */,
+				588B5053CB08C291D2E447F3 /* GremlinSpriteSheetGeometry.swift */,
 				4D4658ACB2923A75258AD916 /* GremlinSpriteThumbnailLoader.swift */,
-				B81D397A0629C4E53D0A1B2C /* GremlinSpriteSheetGeometry.swift */,
+				E6644AEC5BA1866539180545 /* GremlinTypingVoicePlayer.swift */,
 				0EF6A8B80F48322F2EAA0BBA /* LoginItemManager.swift */,
-				E1E2D3C4B5A69788796A5B4C /* GremlinTypingVoicePlayer.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -279,13 +296,18 @@
 		91F896C2E1F1BFB8DD195D18 /* LLM */ = {
 			isa = PBXGroup;
 			children = (
+				9088F72F28363FE5D9F57C51 /* AnthropicMessagesProvider.swift */,
+				9E34B8857EB9D26202394745 /* GremlinContextBuilder.swift */,
+				A565A92A254234CE32236565 /* GremlinLLMBackend.swift */,
+				1BBDE8596FA411960F0A32FA /* GremlinLLMProviderFactory.swift */,
 				3854F649018FB4932730A208 /* GremlinOrchestrator.swift */,
-				D0C9B8A79685746352413029 /* GremlinContextBuilder.swift */,
 				9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */,
 				02397BEF3E9784FE6C995AFD /* LLMProvider.swift */,
 				DD2190B8ECFA7D9C43A0881B /* MLXProvider.swift */,
 				F36DF62341D41F9A79798044 /* MockLLMProvider.swift */,
 				22A0B26FC7EA98209FD4A824 /* OllamaProvider.swift */,
+				4948BB3336BD7E5C36E07ECB /* OpenAICompatibleProvider.swift */,
+				40E6C158B92C8C177B9F24D8 /* SecureLLMAPIKey.swift */,
 			);
 			path = LLM;
 			sourceTree = "<group>";
@@ -294,7 +316,7 @@
 			isa = PBXGroup;
 			children = (
 				92B3CD49E38F80208AB776A2 /* GremlinCharacterAnimationResolver.swift */,
-				E2D1C3B4A5969788796A5B4C /* GremlinCompanionSpriteStateMachine.swift */,
+				157620D113B2E5116234E83F /* GremlinCompanionSpriteStateMachine.swift */,
 				EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */,
 				A33076E5F8374E27394A331B /* GremlinSpriteManifestModels.swift */,
 				42A2B59F60D8D0CAAD546C6E /* GremlinSpriteState.swift */,
@@ -336,11 +358,12 @@
 			isa = PBXGroup;
 			children = (
 				1B580CC96A94E2E09695126E /* final_1.png */,
-				F1E2D3C4B5A69788796A5B5B /* short_phrase.png */,
-				M1S2M3L4E5P6N7G9 /* smile.png */,
 				5A771457667A29DA7C98FAA4 /* GremlinSpriteManifest.json */,
 				52BA35BDD806D7AFEFBF83EE /* idle_1.png */,
-				D4E5F60718293A4B5C6D7E8F1 /* idle_2.png */,
+				1E60DDEDEAF0012C323CF124 /* idle_2.png */,
+				93588B127AAD444D09AA395A /* short_phrase.png */,
+				9B1622D37563234EBF8BDCEF /* smile.png */,
+				2EB155B15FEABC4580CA71F9 /* spit.png */,
 				8EF42499DEFB1BE0502D93CA /* talking_1.png */,
 				26BEA2C0CC7EE482445F75E5 /* talking_2.png */,
 				FBF1D3DE4AB679DF1A244669 /* talking_3.png */,
@@ -352,6 +375,7 @@
 			isa = PBXGroup;
 			children = (
 				D419CEF536B9D4B718350727 /* AppSwitchHysteresis.swift */,
+				B6F74776B1776EB321E6886F /* CursorHoverInspector.swift */,
 				2DF522C5E5F9D34378B98083 /* FocusClassifier.swift */,
 				8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */,
 				5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */,
@@ -359,7 +383,6 @@
 				22DCE247109C36358DBB0760 /* ScrollSessionTracker.swift */,
 				6372F069B9959F8B5E69C9C8 /* ScrollWheelMonitor.swift */,
 				AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */,
-				F1E2D3C4B5A69788796AFFAB /* CursorHoverInspector.swift */,
 			);
 			path = FocusEngine;
 			sourceTree = "<group>";
@@ -368,10 +391,11 @@
 			isa = PBXGroup;
 			children = (
 				81ED09E94658F3301D3434BE /* CompanionBubbleView.swift */,
+				A50FBBBE5629D455ACF6DF56 /* GoblinSpitOverlayView.swift */,
 				8BC8FAC560BD7355AFFB9444 /* GremlinDiscreteFrameImageView.swift */,
-				F8B2D0145C3E56789901BCDE /* GremlinNativeSequencePlayerView.swift */,
 				2F5579DB02D0CD83F81E463E /* GremlinDismissSpriteView.swift */,
 				4002081B0FFB14332762443C /* GremlinIdleSpriteView.swift */,
+				48E9B693DE5ED854D4325281 /* GremlinNativeSequencePlayerView.swift */,
 				A1789929C0694F4BE7AACBF5 /* GremlinSpriteCharacterView.swift */,
 				AB70B866DB82AE039D9BCB9F /* GremlinSpriteStripNativeView.swift */,
 				DEE32ADCDEE13601CADE7077 /* GremlinTalkingCenterSpriteView.swift */,
@@ -466,16 +490,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1E2F3A4B5C60718293A4B5C5 /* gremlin_typing_voice.mp3 in Resources */,
-				B2C3D4E5F60718293A4B5C0D /* gremlin_short_words.mp3 in Resources */,
-				G1G2G3G4G5G6G7G8G9H0 /* gremlin_giggle.mp3 in Resources */,
 				9CDDB66360CB123E6F7293BE /* Assets.xcassets in Resources */,
 				52B6CFAD57D973752132A565 /* GremlinSpriteManifest.json in Resources */,
 				05516BC03A3D153B7CAC3968 /* final_1.png in Resources */,
-				F1E2D3C4B5A69788796A5B5A /* short_phrase.png in Resources */,
-				M1S2M3L4E5P6N7G8 /* smile.png in Resources */,
+				80B6A1E4079208C2154A2207 /* gremlin_giggle.mp3 in Resources */,
+				65EB6065D07C4BA76471EF01 /* gremlin_short_words.mp3 in Resources */,
+				4C2B004BE2CB618584C6C3C7 /* gremlin_spit.mp3 in Resources */,
+				E14ACD011C95802417B5FAB8 /* gremlin_typing_voice.mp3 in Resources */,
 				C3E730BCEABEE664745DE18C /* idle_1.png in Resources */,
-				D4E5F60718293A4B5C6D7E8F0 /* idle_2.png in Resources */,
+				306CB729290DBFA517A98C93 /* idle_2.png in Resources */,
+				648C6A27AEDA639210E5F6A9 /* short_phrase.png in Resources */,
+				67F3B8F07BC76C0D8500DF6F /* smile.png in Resources */,
+				24BA74AB0D7C2F0FEB5BE6E2 /* spit.png in Resources */,
 				506E1C6AF2B62362A7341241 /* talking_1.png in Resources */,
 				870C452BD27FDC24E92E58E8 /* talking_2.png in Resources */,
 				1BFD34FD1B72259543139CD9 /* talking_3.png in Resources */,
@@ -489,47 +515,53 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A0E2C93F88F3C1722BB0F57 /* AnthropicMessagesProvider.swift in Sources */,
 				20AA3A1F8FF66D2B35C3DAA2 /* AppDelegate.swift in Sources */,
 				4EEDFE96AEC01BDDB1CB9182 /* AppLogger.swift in Sources */,
 				E5B0D4B959D9C0BB078D7F6B /* AppSwitchHysteresis.swift in Sources */,
 				DC53473A608FA4DE9FED2004 /* CompanionBubbleView.swift in Sources */,
 				32252E82A4BF6F30F54AA209 /* CompanionSession.swift in Sources */,
 				018FB01EB02193AEABA07E2E /* CompanionViewModel.swift in Sources */,
+				243A0A4E85800FEDDB3EEF4C /* CursorHoverInspector.swift in Sources */,
 				BA5016854CDD32BD104CE66E /* FeatureFlags.swift in Sources */,
 				6A0A2D9CB78898E988E782FD /* FocusClassifier.swift in Sources */,
 				F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */,
 				87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */,
 				60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */,
+				36BB71E3EAB50F67E7CAD1D2 /* GoblinSpitOverlayView.swift in Sources */,
 				18A7A2D9D90D89953E035CAE /* GremlinCharacterAnimationResolver.swift in Sources */,
-				F1E2D3C4B5A69788796A5B4C /* GremlinCompanionSpriteStateMachine.swift in Sources */,
+				67EF5BCA366ECD73F44D94A9 /* GremlinCompanionSpriteStateMachine.swift in Sources */,
+				CA21ABF150018CCA437E50E3 /* GremlinContextBuilder.swift in Sources */,
 				66A0B96A70EF1C6560C17A61 /* GremlinDiscreteFrameImageView.swift in Sources */,
-				E7A1C9034B2D45678890ABCD /* GremlinNativeSequencePlayerView.swift in Sources */,
 				706A689AAD4476F268744AF1 /* GremlinDismissSpriteView.swift in Sources */,
 				44C1138C19920BAE357DA876 /* GremlinIdleSpriteView.swift in Sources */,
+				90D9D503417743CD8C148703 /* GremlinLLMBackend.swift in Sources */,
+				03BA897FA1F0DB77F196FD13 /* GremlinLLMProviderFactory.swift in Sources */,
+				2BD89D850016764393764A66 /* GremlinNativeSequencePlayerView.swift in Sources */,
 				CDDFFC054D3BCCBA920A5A46 /* GremlinOrchestrator.swift in Sources */,
-				E1F2A3B4C5D60718293A4B5C6 /* GremlinContextBuilder.swift in Sources */,
 				F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */,
 				58CA8D93F324EF65CB730F39 /* GremlinSpeechContext.swift in Sources */,
 				5FC535569B9AD0CF35723B76 /* GremlinSpriteCharacterView.swift in Sources */,
 				1B4A295A647C13F9F384CEE6 /* GremlinSpriteManifestModels.swift in Sources */,
+				EA4A1583598E69F9CE158258 /* GremlinSpriteSheetGeometry.swift in Sources */,
 				25E6D8D089E5AE9418552AA7 /* GremlinSpriteState.swift in Sources */,
 				06B80062C8F7BFE10591FC42 /* GremlinSpriteStripNativeView.swift in Sources */,
 				3AD64D6105D2ED5CE9CB320E /* GremlinSpriteThumbnailLoader.swift in Sources */,
-				C91E4A8B0732D5F64E1A2B3C /* GremlinSpriteSheetGeometry.swift in Sources */,
 				51B02E87E874257BA3D1D47C /* GremlinTalkingCenterSpriteView.swift in Sources */,
 				DAB4FCCE37A93BA46C59C8B9 /* GremlinTalkingNegateSpriteView.swift in Sources */,
 				3071D87C9D653F58C5F46A5F /* GremlinTalkingRightSpriteView.swift in Sources */,
 				DF1572BEF7CE39C091194DB1 /* GremlinTypingSpriteView.swift in Sources */,
+				6919D0991ADF78CC73DFD07D /* GremlinTypingVoicePlayer.swift in Sources */,
 				42B62D7FB66845EBE9DA714B /* InterruptionPolicy.swift in Sources */,
 				C99C98DE32AC63A20BD61825 /* LLMProvider.swift in Sources */,
 				1F055638C8A36E2E5AF76D0F /* LoginItemManager.swift in Sources */,
-				F1E2D3C4B5A69788796A5B4D /* GremlinTypingVoicePlayer.swift in Sources */,
 				23A0C012F1E95780129FABEF /* MLXProvider.swift in Sources */,
 				A20D8D39ABA7F37236612112 /* MessageSelector.swift in Sources */,
 				376B54EBD95DE7567A0D6843 /* MockLLMProvider.swift in Sources */,
 				0176605673F0EC5B3435FC0C /* OllamaProvider.swift in Sources */,
 				37CB6B2CD92E13BA2E065A6C /* OllamaVisionClassifier.swift in Sources */,
 				87863A9841AA283D3958631A /* OnboardingView.swift in Sources */,
+				694D8FD7527FC67A207EEB0F /* OpenAICompatibleProvider.swift in Sources */,
 				DFA914077AF31666E6FB0CE8 /* OverlayPanelController.swift in Sources */,
 				FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */,
 				1B54D34E1E020C69E54BB19A /* RecentMessageMemory.swift in Sources */,
@@ -537,6 +569,7 @@
 				360DFB1DEED27451B27C2EDA /* ScreenCaptureService.swift in Sources */,
 				518AEC6A286DB92FB06038E4 /* ScrollSessionTracker.swift in Sources */,
 				C680B0B95B319501F0BE06A5 /* ScrollWheelMonitor.swift in Sources */,
+				30062D7787B8E33558AFB3CF /* SecureLLMAPIKey.swift in Sources */,
 				0B0FC3FF3E611E3B482A6DB0 /* SettingsRootView.swift in Sources */,
 				5887ACBAB79CFF366541349E /* SettingsStore.swift in Sources */,
 				4075F28EF60A028905F26878 /* SmartCategoryMerge.swift in Sources */,
@@ -544,7 +577,6 @@
 				67777B0A348C31822906FCA7 /* TemplatePhraseBank.swift in Sources */,
 				4599DD2D9ECC15DDD5C0BB16 /* TypingDotsView.swift in Sources */,
 				A4E7D99CBD56BD29D5D64512 /* WindowContextProvider.swift in Sources */,
-				F1E2D3C4B5A69788796AFFAC /* CursorHoverInspector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

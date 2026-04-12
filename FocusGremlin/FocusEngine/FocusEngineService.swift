@@ -106,6 +106,7 @@ final class FocusEngineService: ObservableObject {
             windowTitle: windowSnapshot?.title,
             pageTitle: pageContext?.title,
             pageURL: pageContext?.url,
+            pageSemanticSnippet: pageContext?.semanticSnippet,
             timestamp: Date()
         )
         let config = FocusRuleConfiguration(
@@ -214,7 +215,7 @@ final class FocusEngineService: ObservableObject {
             effectiveCategory: category,
             configuration: config
         ) {
-            if let key = Self.pageIdentity(snapshot: snapshot) {
+            if let key = snapshot.pageNavigationStabilityKey {
                 doomscrollPageDidChange = registerStableDistractingPageKey(key, now: snapshot.timestamp)
             }
         } else {
@@ -277,18 +278,14 @@ final class FocusEngineService: ObservableObject {
         effectiveCategory: FocusCategory,
         configuration: FocusRuleConfiguration
     ) -> Bool {
+        if configuration.browserBundleIDs.contains(bundleID) {
+            return true
+        }
         if effectiveCategory == .distracting {
             return true
         }
-        if configuration.browserBundleIDs.contains(bundleID), ruleCategory != .productive {
-            return true
-        }
+        _ = ruleCategory
         return false
-    }
-
-    /// Идентичность текущей страницы: сначала URL/host+path, затем pageTitle/windowTitle.
-    private static func pageIdentity(snapshot: FocusSnapshot) -> String? {
-        snapshot.pageIdentityKey
     }
 
     private func registerStableDistractingPageKey(_ key: String, now: Date) -> Bool {
@@ -312,7 +309,8 @@ final class FocusEngineService: ObservableObject {
         }
 
         let firstSeen = pendingDistractingPageFirstSeenAt ?? now
-        guard now.timeIntervalSince(firstSeen) >= 0.85 else { return false }
+        // Короче — быстрее реагируем на смену ссылки во вкладке (idle_2 + агент).
+        guard now.timeIntervalSince(firstSeen) >= 0.28 else { return false }
         lastDistractingPageKey = key
         pendingDistractingPageKey = nil
         pendingDistractingPageFirstSeenAt = nil

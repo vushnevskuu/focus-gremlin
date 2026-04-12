@@ -58,8 +58,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         warmUpGremlinSpriteCache()
 
         // Таймер с selector: без Task { @MainActor } на каждом тике — иначе кадры откладываются за SwiftUI и следование «плывёт».
+        // ~32 Гц + лёгкий lerp позиции пузыря: меньше ступенек при движении мыши; плевки не трогаем orderFront каждый тик.
         cursorTimer = Timer.scheduledTimer(
-            timeInterval: 1.0 / 60.0,
+            timeInterval: 1.0 / 32.0,
             target: self,
             selector: #selector(cursorFollowFire),
             userInfo: nil,
@@ -89,6 +90,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             screenshotJPEG: windowJPEG
                         )
                         self?.overlay.viewModel.setNeuralDoomscrollPageDigest(skim)
+                        // Сначала реально показать `idle_2`, потом уже пускать реплику.
+                        await Task.yield()
+                        let leadDelay = self?.overlay.viewModel.idle2LeadInDelayForPageReaction() ?? 0
+                        if leadDelay > 0 {
+                            try? await Task.sleep(nanoseconds: UInt64(leadDelay * 1_000_000_000))
+                        } else {
+                            try? await Task.sleep(nanoseconds: 96_000_000)
+                        }
                     }
                     await self?.evaluate(
                         output,
@@ -167,7 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         defer { lastFocusCategory = output.category }
 
         guard let prev = lastFocusCategory else { return }
-        guard prev == .distracting, output.category == .productive else { return }
+        guard prev == .distracting, output.category != .distracting else { return }
         let now = Date()
         if let t = lastWorkReturnFinalAt, now.timeIntervalSince(t) < Self.workReturnFinalCooldown {
             return
@@ -209,6 +218,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             windowTitle: output.snapshot.windowTitle,
             pageTitle: output.snapshot.pageTitle,
             pageURL: output.snapshot.pageURL,
+            pageSemanticSnippet: output.snapshot.pageSemanticSnippet,
             focusCategory: output.category,
             visionCategory: visionCategory,
             neuralPageChangeDigest: overlay.viewModel.neuralDoomscrollPageDigest,
@@ -228,6 +238,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        guard overlay.viewModel.canAcceptDistractionInterventionLine else {
+            AppLogger.focus.debug(
+                "Вмешательство отброшено как устаревшее: финал/выход из doomscroll уже наступил"
+            )
+            return
+        }
+
         let finished = await overlay.viewModel.runLiveDelivery(line, isDistractionIntervention: true)
         if finished, trigger != .pageChange {
             focusEngine.markInterventionShown()
@@ -242,6 +259,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return await orchestrator.evaluateNewDoomscrollPage(
             bundleID: snapshot.bundleID,
             windowTitle: snapshot.windowTitle,
+            pageTitle: snapshot.pageTitle,
+            pageURL: snapshot.pageURL,
+            pageSemanticSnippet: snapshot.pageSemanticSnippet,
             settings: settings,
             llm: llm,
             screenshotJPEG: screenshotJPEG
@@ -249,11 +269,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func makeLLMProvider() -> any LLMProvider {
-        let raw = SettingsStore.shared.ollamaBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URL(string: raw), url.scheme != nil else {
-            return MockLLMProvider(cannedResponse: "Локальная модель недоступна: проверь URL в настройках.")
-        }
-        return OllamaProvider(baseURL: url, model: SettingsStore.shared.ollamaModel)
+        GremlinLLMProviderFactory.makeProvider(settings: SettingsStore.shared)
     }
 
     private struct VisionArtifacts {
@@ -281,21 +297,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let windowTarget = await MainActor.run { ScreenCaptureService.focusedWindowCaptureTarget() }
+        let cursorTarget = await MainActor.run { ScreenCaptureService.cursorNeighborhoodCaptureTarget() }
 
         let windowJPEG = await Task.detached {
-            // Чуть выше лимит — VLM читает целый фрейм переднего окна (текст, сетку ленты), не кроп у курсора.
+            // Главный кадр: целый фрейм переднего окна для общего смысла страницы.
             ScreenCaptureService.captureJPEG(target: windowTarget, maxDimension: 1120, quality: 0.56)
         }.value
-
-        let cursorJPEG: Data?
-        if windowJPEG == nil {
-            let cursorTarget = await MainActor.run { ScreenCaptureService.cursorNeighborhoodCaptureTarget() }
-            cursorJPEG = await Task.detached {
-                ScreenCaptureService.captureJPEG(target: cursorTarget, maxDimension: 800, quality: 0.62)
-            }.value
-        } else {
-            cursorJPEG = nil
-        }
+        let cursorJPEG = await Task.detached {
+            // Локальный кроп вокруг курсора: точечный контекст того места, где пользователь прямо сейчас завис.
+            ScreenCaptureService.captureJPEG(target: cursorTarget, maxDimension: 800, quality: 0.62)
+        }.value
 
         if let w = windowJPEG {
             cachedVisionArtifacts = CachedVisionArtifacts(

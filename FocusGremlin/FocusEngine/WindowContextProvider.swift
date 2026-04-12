@@ -9,6 +9,7 @@ struct FrontmostWindowSnapshot: Sendable {
 struct FrontmostBrowserPageContext: Sendable {
     let title: String?
     let url: String?
+    let semanticSnippet: String?
 }
 
 /// Заголовок фронтального окна через Accessibility. Без доверия возвращает nil — это нормальный graceful fallback.
@@ -172,10 +173,13 @@ enum WindowContextProvider {
 
         let title = trimmedDescriptorString(descriptor.atIndex(1))
         let url = trimmedDescriptorString(descriptor.atIndex(2))
-        if title == nil, url == nil {
+        let semanticSnippet = normalizedSemanticSnippet(
+            trimmedDescriptorString(descriptor.atIndex(3))
+        )
+        if title == nil, url == nil, semanticSnippet == nil {
             return nil
         }
-        return FrontmostBrowserPageContext(title: title, url: url)
+        return FrontmostBrowserPageContext(title: title, url: url, semanticSnippet: semanticSnippet)
     }
 
     private static func appleScriptSource(bundleID: String) -> String? {
@@ -183,21 +187,36 @@ enum WindowContextProvider {
         case .safari:
             return """
             tell application id "\(bundleID)"
-                if not (exists front window) then return {"", ""}
+                if not (exists front window) then return {"", "", ""}
                 set tabRef to current tab of front window
                 set pageTitle to name of tabRef
                 set pageURL to URL of tabRef
-                return {pageTitle, pageURL}
+                set pageSnippet to ""
+                try
+                    set pageSnippet to text of tabRef
+                on error
+                    set pageSnippet to ""
+                end try
+                return {pageTitle, pageURL, pageSnippet}
             end tell
             """
         case .chromium:
+            let jsSource = semanticSnippetJavaScript().replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
             return """
+            set jsSource to "\(jsSource)"
             tell application id "\(bundleID)"
-                if not (exists front window) then return {"", ""}
+                if not (exists front window) then return {"", "", ""}
                 set tabRef to active tab of front window
                 set pageTitle to title of tabRef
                 set pageURL to URL of tabRef
-                return {pageTitle, pageURL}
+                set pageSnippet to ""
+                try
+                    set pageSnippet to execute tabRef javascript jsSource
+                on error
+                    set pageSnippet to ""
+                end try
+                return {pageTitle, pageURL, pageSnippet}
             end tell
             """
         case .unsupported:
@@ -208,5 +227,47 @@ enum WindowContextProvider {
     private static func trimmedDescriptorString(_ descriptor: NSAppleEventDescriptor?) -> String? {
         let value = descriptor?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return value.isEmpty ? nil : value
+    }
+
+    private static func normalizedSemanticSnippet(_ raw: String?) -> String? {
+        let blob = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !blob.isEmpty else { return nil }
+
+        let separators = CharacterSet.newlines.union(CharacterSet(charactersIn: "|"))
+        let rawParts = blob.components(separatedBy: separators)
+        var seen = Set<String>()
+        var kept: [String] = []
+        kept.reserveCapacity(4)
+
+        for part in rawParts {
+            var token = part
+                .replacingOccurrences(of: "\u{2028}", with: " ")
+                .replacingOccurrences(of: "\u{2029}", with: " ")
+                .split(whereSeparator: { $0.isNewline })
+                .joined(separator: " ")
+                .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard token.count >= 4 else { continue }
+            if token.count > 120 {
+                token = String(token.prefix(117)) + "..."
+            }
+            let key = token.lowercased()
+            guard seen.insert(key).inserted else { continue }
+            kept.append(token)
+            if kept.count >= 4 { break }
+        }
+
+        guard !kept.isEmpty else { return nil }
+        let joined = kept.joined(separator: " | ")
+        if joined.count <= 240 {
+            return joined
+        }
+        return String(joined.prefix(237)) + "..."
+    }
+
+    private static func semanticSnippetJavaScript() -> String {
+        """
+        (() => { const clean = value => (value || '').replace(/\\s+/g, ' ').trim(); const out = []; const seen = new Set(); const add = value => { let text = clean(value); if (!text || text.length < 4) return; const key = text.toLowerCase(); if (seen.has(key)) return; seen.add(key); if (text.length > 120) text = text.slice(0, 117) + '...'; out.push(text); }; try { add(window.getSelection && window.getSelection().toString()); } catch (e) {} try { const active = document.activeElement; if (active) { add(active.getAttribute && active.getAttribute('aria-label')); add('value' in active ? active.value : ''); add(active.innerText || active.textContent); } } catch (e) {} const selectors = ['main h1', 'article h1', 'h1', 'h2', '[role=\"heading\"]', 'main p', 'article p', 'main li', 'article li', 'button', 'a', '[aria-label]']; const visible = el => { try { const rect = el.getBoundingClientRect(); return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < innerHeight * 1.2; } catch (e) { return false; } }; outer: for (const selector of selectors) { const nodes = document.querySelectorAll(selector); for (const node of nodes) { if (!visible(node)) continue; add(node.innerText || node.textContent || ('value' in node ? node.value : '')); if (out.length >= 6 || out.join(' | ').length >= 260) break outer; } } return clean(out.join(' | ')).slice(0, 260); })()
+        """
     }
 }

@@ -8,7 +8,8 @@ private enum OllamaGremlinGeneration {
     static let topK = 32
     static let repeatPenalty = 1.22
     /// Короткие реплики (до пары десятков токенов); лишнее режет `GremlinLineFormatter`.
-    static let numPredict = 36
+    /// Длиннее реплики (до ~12 слов) без обрезки на стороне модели.
+    static let numPredict = 72
 }
 
 /// Клиент Ollama HTTP API. Всё остаётся на localhost.

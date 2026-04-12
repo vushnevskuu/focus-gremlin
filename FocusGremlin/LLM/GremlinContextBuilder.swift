@@ -8,6 +8,7 @@ struct GremlinInterventionContext: Sendable {
     let windowTitle: String?
     let pageTitle: String?
     let pageURL: String?
+    let pageSemanticSnippet: String?
     let focusCategory: FocusCategory
     let visionCategory: FocusCategory?
     /// Краткая оценка LLM/VLM сразу после смены страницы doomscroll (`idle_2` реакция).
@@ -21,6 +22,7 @@ struct GremlinInterventionContext: Sendable {
             windowTitle: windowTitle,
             pageTitle: pageTitle,
             pageURL: pageURL,
+            pageSemanticSnippet: pageSemanticSnippet,
             timestamp: Date()
         )
         return snapshot.pageIdentityKey
@@ -197,6 +199,10 @@ enum GremlinContextBuilder {
 
         if let skim = context.neuralPageChangeDigest?.trimmingCharacters(in: .whitespacesAndNewlines), !skim.isEmpty {
             parts.append("• Agent skim after new page navigation: \(skim)")
+        }
+
+        if let semantic = context.pageSemanticSnippet?.trimmingCharacters(in: .whitespacesAndNewlines), !semantic.isEmpty {
+            parts.append("• Browser DOM / visible text anchor: \(semantic)")
         }
 
         if let hover = context.pointerAccessibilitySummary?.trimmingCharacters(in: .whitespacesAndNewlines), !hover.isEmpty {

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Генератор project.pbxproj (legacy). Для Xcode 26+ предпочтительно: `xcodegen generate` в каталоге с project.yml."""
 import uuid
 from pathlib import Path
 
@@ -8,8 +9,9 @@ def uid():
 
 
 project_id = uid()
-app_target_id = uid()
-test_target_id = uid()
+# Стабильные ID — в `xcshareddata/xcschemes/FocusGremlin.xcscheme` стоят те же BlueprintIdentifier.
+app_target_id = "3060CA94244246C79773FAFC"
+test_target_id = "6782FF82920C4E829EAD8361"
 project_config_list = uid()
 app_config_list = uid()
 test_config_list = uid()
@@ -59,6 +61,11 @@ swift_files = [
     ("focus", "FocusEngineService.swift"),
     ("llm", "LLMProvider.swift"),
     ("llm", "MockLLMProvider.swift"),
+    ("llm", "GremlinLLMBackend.swift"),
+    ("llm", "SecureLLMAPIKey.swift"),
+    ("llm", "OpenAICompatibleProvider.swift"),
+    ("llm", "AnthropicMessagesProvider.swift"),
+    ("llm", "GremlinLLMProviderFactory.swift"),
     ("llm", "MLXProvider.swift"),
     ("llm", "OllamaProvider.swift"),
     ("llm", "GremlinPrompts.swift"),

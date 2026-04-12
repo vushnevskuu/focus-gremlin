@@ -11,6 +11,7 @@ struct FocusSnapshot: Sendable, Equatable {
     var windowTitle: String?
     var pageTitle: String? = nil
     var pageURL: String? = nil
+    var pageSemanticSnippet: String? = nil
     var timestamp: Date
 
     var effectivePageTitle: String? {
@@ -35,6 +36,9 @@ struct FocusSnapshot: Sendable, Equatable {
     }
 
     var pageIdentityKey: String? {
+        let title = effectivePageTitle?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
         if let rawURL = pageURL?.trimmingCharacters(in: .whitespacesAndNewlines), !rawURL.isEmpty {
             if let url = URL(string: rawURL) {
                 let host = url.host?.lowercased() ?? ""
@@ -43,15 +47,82 @@ struct FocusSnapshot: Sendable, Equatable {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                     .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                     .lowercased()
-                let body = [trimmedHost, path].filter { !$0.isEmpty }.joined(separator: "/")
+                let query = url.query?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .lowercased()
+                var body = [trimmedHost, path].filter { !$0.isEmpty }.joined(separator: "/")
+                if let query, !query.isEmpty {
+                    body += "?" + query
+                }
+                if let title, !title.isEmpty {
+                    body += "\u{1f}" + title
+                }
                 if !body.isEmpty {
                     return bundleID + "\u{1e}" + body
                 }
             }
-            return bundleID + "\u{1e}" + rawURL.lowercased()
+            let urlKey = rawURL.lowercased()
+            if let title, !title.isEmpty {
+                return bundleID + "\u{1e}" + urlKey + "\u{1f}" + title
+            }
+            return bundleID + "\u{1e}" + urlKey
         }
-        guard let title = effectivePageTitle?.lowercased(), !title.isEmpty else { return nil }
+        guard let title, !title.isEmpty else { return nil }
         return bundleID + "\u{1e}" + title
+    }
+
+    private var semanticNavigationSignature: String? {
+        let raw = pageSemanticSnippet?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !raw.isEmpty else { return nil }
+
+        let parts = raw
+            .lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { $0.count >= 4 }
+
+        guard !parts.isEmpty else { return nil }
+        var seen = Set<String>()
+        var kept: [String] = []
+        for token in parts where seen.insert(token).inserted {
+            kept.append(token)
+            if kept.count >= 3 { break }
+        }
+        guard !kept.isEmpty else { return nil }
+        return kept.joined(separator: "+")
+    }
+
+    /// Ключ смены **навигации** без заголовка вкладки: SPA и браузер часто обновляют `pageTitle` между тиками,
+    /// из‑за чего полный `pageIdentityKey` «дрожит» и `doomscrollPageDidChange` не срабатывает.
+    var pageNavigationStabilityKey: String? {
+        let rawURL = pageURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !rawURL.isEmpty else { return pageIdentityKey }
+        if let url = URL(string: rawURL) {
+            let host = url.host?.lowercased() ?? ""
+            let trimmedHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+            let path = url.path
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                .lowercased()
+            let query = url.query?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .lowercased()
+            var body = [trimmedHost, path].filter { !$0.isEmpty }.joined(separator: "/")
+            if let query, !query.isEmpty {
+                body += "?" + query
+            }
+            if let semanticNavigationSignature, !semanticNavigationSignature.isEmpty {
+                body += "\u{1f}" + semanticNavigationSignature
+            }
+            if !body.isEmpty {
+                return bundleID + "\u{1e}" + body
+            }
+        }
+        var fallback = rawURL.lowercased()
+        if let semanticNavigationSignature, !semanticNavigationSignature.isEmpty {
+            fallback += "\u{1f}" + semanticNavigationSignature
+        }
+        return bundleID + "\u{1e}" + fallback
     }
 }
 

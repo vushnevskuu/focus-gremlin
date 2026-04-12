@@ -27,12 +27,18 @@ private enum CompanionOverlayTiming {
     static let textHiddenBlur: CGFloat = 4
     static let textHideDuration: TimeInterval = 0.18
     static let typingDotsSeconds: ClosedRange<UInt64> = 280_000_000...520_000_000
-    /// Текст стоит после допечатывания, затем «падение» букв.
+    /// Текст стоит после допечатывания, затем «стекание» букв.
     static let quoteHoldAfterTyping: TimeInterval = 5
     /// Пауза без текста перед следующей репликой (следующий вызов `runLiveDelivery`).
     static let pauseBeforeNextQuote: TimeInterval = 3
-    static let charFallStaggerNanoseconds: UInt64 = 48_000_000
-    static let charFallDuration: TimeInterval = 0.44
+    /// Между соседними символами — короткая задержка, чтобы шло волной, как одна слизь.
+    static let charFallStaggerNanoseconds: UInt64 = 18_000_000
+    /// Дольше и вязче — «течёт», а не падает.
+    static let charFallDuration: TimeInterval = 1.05
+    /// Плевки идут между репликами, но не долбят экран каждую секунду.
+    static let ambientSpitCadenceNanoseconds: ClosedRange<UInt64> = 4_600_000_000...7_200_000_000
+    static let ambientSpitRetryNanoseconds: UInt64 = 900_000_000
+    static let spitDissolveDuration: TimeInterval = 1.45
 }
 
 enum BubblePhase: Equatable {
@@ -41,7 +47,7 @@ enum BubblePhase: Equatable {
     case typingDots
     case streaming
     case holding
-    /// Буквы «падают» перед очисткой текста.
+    /// Буквы «стекают» перед очисткой текста.
     case textFalling
     case dismissing
 }
@@ -55,8 +61,8 @@ enum GremlinCursorZone: Equatable {
 
 @MainActor
 final class CompanionViewModel: ObservableObject {
-    private static let pageReactionCooldown: TimeInterval = 2.4
-    private static let pageReactionPresenceDuration: TimeInterval = 2.1
+    private static let pageReactionCooldown: TimeInterval = 0.35
+    private static let pageReactionPresenceDuration: TimeInterval = 3.0
 
     @Published var phase: BubblePhase = .idle
     @Published var visibleText: String = ""
@@ -78,6 +84,8 @@ final class CompanionViewModel: ObservableObject {
     private var nextIdleStripMustBePrimary = false
     /// Если новая страница пришла посреди речи, не рвём текущий спрайт — откладываем реакцию на ближайшую idle-паузу.
     private var pendingSecondaryIdleReaction = false
+    /// Реакция на новую ссылку: `idle_2` играет **один полный проход** листа, затем снова `idle_1`.
+    private var pageReactionIdle2SinglePassActive = false
     private var lastPageReactionAt: Date?
     @Published private(set) var transientPageReactionActive = false
     /// Краткая оценка LLM/VLM после навигации на новую страницу отвлечения — строка в следующий контекст реплики.
@@ -86,6 +94,14 @@ final class CompanionViewModel: ObservableObject {
     @Published private(set) var deliveryUsesShortPhraseSprite = false
     /// Смещение по Y для каждого символа `visibleText` в фазе `.textFalling`.
     @Published var charFallOffsetsY: [CGFloat] = []
+    /// Горизонтальный дрейф при вязком стекании.
+    @Published var charFlowOffsetsX: [CGFloat] = []
+    /// Межрепличный плевок: отдельный спрайт между цитатами на doomscroll-страницах.
+    @Published private(set) var ambientSpitActive = false
+    /// Слизистые пятна поверх экрана.
+    @Published private(set) var spitStains: [GoblinSpitStain] = []
+    /// Размер `NSPanel` плевков (`visibleFrame`). Без этого SwiftUI `GeometryReader` часто даёт ~0×0 — пятна в левом нижнем углу.
+    @Published private(set) var spitPanelContentSize: CGSize = .zero
     /// Обновляется из оверлея по сглаженной позиции курсора.
     @Published private(set) var cursorZone: GremlinCursorZone = .center
     /// Вариант речи на время текущей доставки (по тексту или явной подсказке).
@@ -105,14 +121,27 @@ final class CompanionViewModel: ObservableObject {
     /// Сброс реплики при уходе в продуктив (`abortDeliveryForProductiveEscape`): не считать вмешательство показанным.
     private var liveDeliveryAbortedExternally = false
 
-    /// Фаза пузырька не `idle` (набор, удержание, падение и т.д.).
-    var isBusy: Bool { phase != .idle }
-    /// Нельзя запускать новую реплику, пока идёт сценарий или проигрывается `final` (иначе срывается анимация финала).
-    var blocksNewGremlinLine: Bool { phase != .idle || workReturnFinalActive }
+    /// Фаза пузырька не `idle` или гоблин прямо сейчас плюётся.
+    var isBusy: Bool { phase != .idle || ambientSpitActive }
+    /// Нельзя запускать новую реплику, пока идёт сценарий, межрепличный плевок или проигрывается `final`.
+    var blocksNewGremlinLine: Bool { phase != .idle || workReturnFinalActive || ambientSpitActive }
+    /// После финала и выхода в productive запоздавшая строка из старого LLM-запроса не должна внезапно оживать.
+    var canAcceptDistractionInterventionLine: Bool {
+        guard companionLifecycleState == .active else { return false }
+        guard !workReturnFinalActive, !ambientSpitActive else { return false }
+        return isDoomscrollContextActive || transientPageReactionActive
+    }
+    var shouldShowSpitOverlay: Bool { !spitStains.isEmpty }
 
     func setLinePipelineLocked(_ locked: Bool) {
         guard locked != linePipelineLocked else { return }
         linePipelineLocked = locked
+    }
+
+    func setSpitPanelContentSize(_ size: CGSize) {
+        guard size.width > 4, size.height > 4 else { return }
+        guard size != spitPanelContentSize else { return }
+        spitPanelContentSize = size
     }
 
     /// Спрайт виден при отвлечении между репликами, во время доставки текста и на единственном проигрывании `final`.
@@ -129,6 +158,7 @@ final class CompanionViewModel: ObservableObject {
 
     func syncFocusOverlayContext(category: FocusCategory?, agentEnabled: Bool) {
         guard agentEnabled else {
+            stopAmbientSpitLoop(clearStainsImmediately: true)
             isDoomscrollContextActive = false
             neuralDoomscrollPageDigest = nil
             return
@@ -141,6 +171,12 @@ final class CompanionViewModel: ObservableObject {
         isDoomscrollContextActive = (category == .distracting)
         if category != .distracting {
             neuralDoomscrollPageDigest = nil
+            stopAmbientSpitLoop(clearStainsImmediately: false)
+            if !workReturnFinalActive {
+                dissolveSpitStains(clearImmediately: false)
+            }
+        } else {
+            ensureAmbientSpitLoopIfNeeded()
         }
     }
 
@@ -150,15 +186,33 @@ final class CompanionViewModel: ObservableObject {
             return
         }
         lastPageReactionAt = now
+        companionLifecycleState = .active
         activateTransientPageReactionPresence()
         if isBusy {
             pendingSecondaryIdleReaction = true
             nextIdleStripMustBePrimary = true
+            pageReactionIdle2SinglePassActive = true
             return
         }
         activeIdleStripFilename = GremlinIdleSpritePool.secondaryStrip
         nextIdleStripMustBePrimary = true
+        pageReactionIdle2SinglePassActive = true
         typingSpriteEpoch = UUID()
+        scheduleIdle2SinglePassHandoffToPrimary()
+    }
+
+    /// Короткое окно перед page-change репликой, чтобы `idle_2` реально успел отыграть один проход и быть видимым.
+    func idle2LeadInDelayForPageReaction() -> TimeInterval {
+        guard phase == .idle else { return 0 }
+        guard pageReactionIdle2SinglePassActive else { return 0 }
+        guard activeIdleStripFilename == GremlinIdleSpritePool.secondaryStrip else { return 0 }
+        if let resolver = GremlinCharacterAnimationResolver.sharedResolver(),
+           let duration = resolver.durationOfOneIdleStripPass(
+                preferredStripFilename: GremlinIdleSpritePool.secondaryStrip
+           ) {
+            return max(duration + 0.04, 0.18)
+        }
+        return 1.1
     }
 
     func setNeuralDoomscrollPageDigest(_ text: String?) {
@@ -170,12 +224,14 @@ final class CompanionViewModel: ObservableObject {
     func applyAgentEnabledState(_ enabled: Bool) {
         if enabled {
             companionLifecycleState = .active
+            ensureAmbientSpitLoopIfNeeded()
             return
         }
         workReturnFinalTask?.cancel()
         workReturnFinalTask = nil
         deliveryTask?.cancel()
         deliveryTask = nil
+        stopAmbientSpitLoop(clearStainsImmediately: true)
         companionLifecycleState = .active
         isDoomscrollContextActive = false
         resetVisuals()
@@ -204,11 +260,223 @@ final class CompanionViewModel: ObservableObject {
     private var deliveryTask: Task<Void, Never>?
     private var workReturnFinalTask: Task<Void, Never>?
     private var pageReactionPresenceTask: Task<Void, Never>?
+    private var idle2SinglePassHandoffTask: Task<Void, Never>?
+    private var ambientSpitTask: Task<Void, Never>?
+    private var spitCleanupTask: Task<Void, Never>?
+    private func cancelIdle2SinglePassHandoffScheduling() {
+        cancelIdle2SinglePassHandoffTimerOnly()
+        pageReactionIdle2SinglePassActive = false
+    }
+
+    /// Только отмена отложенного возврата на `idle_1` — без сброса флага одиночного прохода (нужно в начале реплики, пока фаза ещё `.idle`).
+    private func cancelIdle2SinglePassHandoffTimerOnly() {
+        idle2SinglePassHandoffTask?.cancel()
+        idle2SinglePassHandoffTask = nil
+    }
+
+    /// После одного прохода `idle_2` возвращаем основной лист (пока пользователь в `.idle`).
+    private func scheduleIdle2SinglePassHandoffToPrimary() {
+        cancelIdle2SinglePassHandoffTimerOnly()
+        guard activeIdleStripFilename == GremlinIdleSpritePool.secondaryStrip else { return }
+        pageReactionIdle2SinglePassActive = true
+        let strip = GremlinIdleSpritePool.secondaryStrip
+        idle2SinglePassHandoffTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let seconds: TimeInterval = {
+                if let r = GremlinCharacterAnimationResolver.sharedResolver(),
+                   let d = r.durationOfOneIdleStripPass(preferredStripFilename: strip) {
+                    return max(d + 0.06, 0.12)
+                }
+                return 1.1
+            }()
+            let ns = UInt64(seconds * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: ns)
+            guard !Task.isCancelled else { return }
+            self.finishIdle2SinglePassHandoffIfStillIdle()
+        }
+    }
+
+    private func finishIdle2SinglePassHandoffIfStillIdle() {
+        idle2SinglePassHandoffTask = nil
+        guard pageReactionIdle2SinglePassActive,
+              activeIdleStripFilename == GremlinIdleSpritePool.secondaryStrip
+        else {
+            pageReactionIdle2SinglePassActive = false
+            return
+        }
+        guard phase == .idle else {
+            pageReactionIdle2SinglePassActive = false
+            return
+        }
+        pageReactionIdle2SinglePassActive = false
+        activeIdleStripFilename = GremlinIdleSpritePool.primaryStrip
+        nextIdleStripMustBePrimary = false
+        typingSpriteEpoch = UUID()
+    }
+
+    /// Согласовано с `GremlinSpriteCharacterView`: один проход `idle_2` только в тихой фазе `.idle`.
+    var useIdleSinglePassForSprite: Bool {
+        pageReactionIdle2SinglePassActive
+            && activeIdleStripFilename == GremlinIdleSpritePool.secondaryStrip
+            && phase == .idle
+    }
+
+    private func ensureAmbientSpitLoopIfNeeded() {
+        guard ambientSpitTask == nil else { return }
+        guard isDoomscrollContextActive, companionLifecycleState == .active else { return }
+        ambientSpitTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(
+                    nanoseconds: UInt64.random(in: CompanionOverlayTiming.ambientSpitCadenceNanoseconds)
+                )
+                guard !Task.isCancelled else { return }
+                guard self.shouldRunAmbientSpitNow else {
+                    try? await Task.sleep(nanoseconds: CompanionOverlayTiming.ambientSpitRetryNanoseconds)
+                    continue
+                }
+                await self.performAmbientSpit()
+            }
+        }
+    }
+
+    private var shouldRunAmbientSpitNow: Bool {
+        guard companionLifecycleState == .active else { return false }
+        guard isDoomscrollContextActive else { return false }
+        guard phase == .idle else { return false }
+        guard !linePipelineLocked, !workReturnFinalActive else { return false }
+        guard !transientPageReactionActive else { return false }
+        return true
+    }
+
+    private func stopAmbientSpitLoop(clearStainsImmediately: Bool) {
+        ambientSpitTask?.cancel()
+        ambientSpitTask = nil
+        ambientSpitActive = false
+        if clearStainsImmediately {
+            spitCleanupTask?.cancel()
+            spitCleanupTask = nil
+            spitStains = []
+        }
+    }
+
+    private func performAmbientSpit() async {
+        guard shouldRunAmbientSpitNow else { return }
+        ambientSpitActive = true
+        typingSpriteEpoch = UUID()
+        GremlinTypingVoicePlayer.shared.playSpitOnceIfAllowed(
+            soundsEnabled: SettingsStore.shared.soundEffectsEnabled
+        )
+        let seconds: TimeInterval = {
+            if let resolver = GremlinCharacterAnimationResolver.sharedResolver(),
+               let duration = resolver.durationOfOneSpitPass() {
+                return max(duration + 0.06, 0.18)
+            }
+            return 2.0
+        }()
+        try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        guard !Task.isCancelled else { return }
+        ambientSpitActive = false
+        typingSpriteEpoch = UUID()
+        appendSpitStains()
+    }
+
+    private func appendSpitStains() {
+        let count = Int.random(in: 1...3)
+        let newStains: [GoblinSpitStain] = (0..<count).map { index in
+            let seed = Int.random(in: 1...Int.max / 4) &+ index * 97
+            // Всё ещё бьём в центр, но уже не в одну и ту же точку.
+            let centerX: ClosedRange<CGFloat> = 0.45...0.55
+            let centerY: ClosedRange<CGFloat> = 0.44...0.56
+            return GoblinSpitStain(
+                id: UUID(),
+                normalizedX: CGFloat.random(in: centerX),
+                normalizedY: CGFloat.random(in: centerY),
+                width: CGFloat.random(in: 74...182),
+                height: CGFloat.random(in: 24...92),
+                tailLength: CGFloat.random(in: 66...224),
+                rotationDegrees: Double.random(in: -16...16),
+                seed: seed
+            )
+        }
+        // Сначала синхронизируем размер панели — иначе `nudge` не знает w×h в пикселях.
+        CompanionSession.syncSpitOverlayWithCursorScreen()
+        let adjusted = nudgeSpitStainsForStacking(newStains)
+        spitStains.append(contentsOf: adjusted)
+        if spitStains.count > 10 {
+            spitStains.removeFirst(spitStains.count - 10)
+        }
+        CompanionSession.syncSpitOverlayWithCursorScreen()
+    }
+
+    /// Без слияния в одну «кашу»: при почти той же точке чуть сдвигаем новую каплю вверх/вбок — визуально наслоение, каждая сохраняет свою форму.
+    private func nudgeSpitStainsForStacking(_ fresh: [GoblinSpitStain]) -> [GoblinSpitStain] {
+        guard !fresh.isEmpty else { return fresh }
+        guard spitPanelContentSize.width > 8, spitPanelContentSize.height > 8 else { return fresh }
+        let w = spitPanelContentSize.width
+        let h = spitPanelContentSize.height
+        var occupied = spitStains
+        var out: [GoblinSpitStain] = []
+        out.reserveCapacity(fresh.count)
+        for stain in fresh {
+            var cur = stain
+            var attempts = 0
+            while attempts < 12 {
+                let tooClose = occupied.contains { o in
+                    let dx = (cur.normalizedX - o.normalizedX) * w
+                    let dy = (cur.normalizedY - o.normalizedY) * h
+                    let sep = max(20, (cur.width + o.width) * 0.24)
+                    return hypot(dx, dy) < sep
+                }
+                if !tooClose { break }
+                cur = GoblinSpitStain(
+                    id: cur.id,
+                    normalizedX: min(0.60, max(0.40, cur.normalizedX + CGFloat.random(in: -0.028...0.028))),
+                    normalizedY: min(0.62, max(0.38, cur.normalizedY - CGFloat.random(in: 0.015...0.034))),
+                    width: cur.width,
+                    height: cur.height,
+                    tailLength: cur.tailLength,
+                    rotationDegrees: cur.rotationDegrees,
+                    seed: cur.seed,
+                    phase: cur.phase
+                )
+                attempts += 1
+            }
+            occupied.append(cur)
+            out.append(cur)
+        }
+        return out
+    }
+
+    private func dissolveSpitStains(clearImmediately: Bool) {
+        spitCleanupTask?.cancel()
+        spitCleanupTask = nil
+        guard !spitStains.isEmpty else { return }
+        if clearImmediately {
+            spitStains = []
+            return
+        }
+        spitStains = spitStains.map { stain in
+            var next = stain
+            next.phase = .dissolving
+            return next
+        }
+        spitCleanupTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(
+                nanoseconds: UInt64(CompanionOverlayTiming.spitDissolveDuration * 1_000_000_000)
+            )
+            guard let self, !Task.isCancelled else { return }
+            self.spitStains = []
+            self.spitCleanupTask = nil
+        }
+    }
 
     func cancelDelivery() {
         GremlinTypingVoicePlayer.shared.stop()
         workReturnFinalTask?.cancel()
         workReturnFinalTask = nil
+        stopAmbientSpitLoop(clearStainsImmediately: true)
+        cancelIdle2SinglePassHandoffScheduling()
         pageReactionPresenceTask?.cancel()
         pageReactionPresenceTask = nil
         transientPageReactionActive = false
@@ -225,6 +493,8 @@ final class CompanionViewModel: ObservableObject {
         GremlinTypingVoicePlayer.shared.stop()
         workReturnFinalTask?.cancel()
         workReturnFinalTask = nil
+        stopAmbientSpitLoop(clearStainsImmediately: false)
+        cancelIdle2SinglePassHandoffScheduling()
         pageReactionPresenceTask?.cancel()
         pageReactionPresenceTask = nil
         transientPageReactionActive = false
@@ -241,11 +511,18 @@ final class CompanionViewModel: ObservableObject {
         workReturnFinalTask = nil
         pageReactionPresenceTask?.cancel()
         pageReactionPresenceTask = nil
+        spitCleanupTask?.cancel()
+        spitCleanupTask = nil
+        ambientSpitTask?.cancel()
+        ambientSpitTask = nil
+        ambientSpitActive = false
+        spitStains = []
         transientPageReactionActive = false
         linePipelineLocked = false
         phase = .idle
         visibleText = ""
         charFallOffsetsY = []
+        charFlowOffsetsX = []
         hideBubbleTextImmediately()
         deliverySpeechStyle = .spatial
         distractionInterventionActive = false
@@ -254,6 +531,7 @@ final class CompanionViewModel: ObservableObject {
         activeIdleStripFilename = GremlinIdleSpritePool.primaryStrip
         nextIdleStripMustBePrimary = false
         pendingSecondaryIdleReaction = false
+        cancelIdle2SinglePassHandoffScheduling()
         lastPageReactionAt = nil
         neuralDoomscrollPageDigest = nil
         companionPresentOpacity = 1
@@ -269,6 +547,7 @@ final class CompanionViewModel: ObservableObject {
 
     private func activateTransientPageReactionPresence() {
         pageReactionPresenceTask?.cancel()
+        companionLifecycleState = .active
         transientPageReactionActive = true
         pageReactionPresenceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(
@@ -343,11 +622,13 @@ final class CompanionViewModel: ObservableObject {
             phase: phase,
             distractionInterventionActive: distractionInterventionActive,
             workReturnFinalActive: workReturnFinalActive,
+            ambientSpitActive: ambientSpitActive,
             talkingStripFilename: activeTalkingStripFilename,
             idleStripFilename: activeIdleStripFilename,
             streamTailIdleStripFilename: nil,
             useShortPhraseStream: deliveryUsesShortPhraseSprite,
-            deliverySpeechStyle: deliverySpeechStyle
+            deliverySpeechStyle: deliverySpeechStyle,
+            idleSinglePass: useIdleSinglePassForSprite
         )
         return max(sequence.duration, fallback)
     }
@@ -355,6 +636,9 @@ final class CompanionViewModel: ObservableObject {
     /// Реакция на переход «отвлечение → продуктив»: показать `final` один раз (по манифесту), затем скрыть пузырь.
     func playWorkReturnFinalCelebration() {
         workReturnFinalTask?.cancel()
+        stopAmbientSpitLoop(clearStainsImmediately: false)
+        dissolveSpitStains(clearImmediately: false)
+        cancelIdle2SinglePassHandoffScheduling()
         deliveryTask?.cancel()
         deliveryTask = nil
         linePipelineLocked = false
@@ -363,6 +647,7 @@ final class CompanionViewModel: ObservableObject {
         phase = .idle
         visibleText = ""
         charFallOffsetsY = []
+        charFlowOffsetsX = []
         hideBubbleTextImmediately()
         GremlinTypingVoicePlayer.shared.stop()
 
@@ -380,6 +665,7 @@ final class CompanionViewModel: ObservableObject {
         phase = .idle
         visibleText = ""
         charFallOffsetsY = []
+        charFlowOffsetsX = []
         hideBubbleTextImmediately()
         GremlinTypingVoicePlayer.shared.stop()
 
@@ -421,6 +707,9 @@ final class CompanionViewModel: ObservableObject {
         speechStyle: GremlinDeliverySpeechStyle? = nil,
         isDistractionIntervention: Bool = false
     ) async -> Bool {
+        if isDistractionIntervention, !canAcceptDistractionInterventionLine {
+            return false
+        }
         liveDeliveryAbortedExternally = false
         deliveryTask?.cancel()
         deliveryTask = Task {
@@ -437,14 +726,15 @@ final class CompanionViewModel: ObservableObject {
         speechStyle: GremlinDeliverySpeechStyle?,
         isDistractionIntervention: Bool
     ) async {
+        if isDistractionIntervention, !canAcceptDistractionInterventionLine {
+            return
+        }
         workReturnFinalTask?.cancel()
         workReturnFinalTask = nil
         workReturnFinalActive = false
         distractionInterventionActive = isDistractionIntervention
-        var resolvedSpeech = speechStyle ?? GremlinSpeechContext.inferSpeechStyle(for: fullText)
-        if speechStyle == nil, resolvedSpeech != .negation, Int.random(in: 0..<5) == 0 {
-            resolvedSpeech = .giggle
-        }
+        cancelIdle2SinglePassHandoffTimerOnly()
+        let resolvedSpeech = speechStyle ?? GremlinSpeechContext.inferSpeechStyle(for: fullText)
         deliverySpeechStyle = resolvedSpeech
         let wordCount = fullText.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
         deliveryUsesShortPhraseSprite = (1...2).contains(wordCount) && deliverySpeechStyle != .giggle
@@ -454,6 +744,7 @@ final class CompanionViewModel: ObservableObject {
         hideBubbleTextImmediately()
         let gremlinAlreadyVisible = isDoomscrollContextActive && phase == .idle
         playCompanionRevealPreflight(alreadyOnScreen: gremlinAlreadyVisible)
+        pageReactionIdle2SinglePassActive = false
         phase = .appearing
 
         let entryDuration = sequenceDuration(
@@ -466,6 +757,9 @@ final class CompanionViewModel: ObservableObject {
 
         // Сразу `.streaming`: лента «речь → idle» крутится во время точек и печати без сброса плеера (раньше `.typingDots` давал idle и обрывал говорящий спрайт).
         phase = .streaming
+        if deliverySpeechStyle == .giggle {
+            typingSpriteEpoch = UUID()
+        }
         let streamingStartedAt = Date()
         animateBubbleTextIn()
         try? await Task.sleep(nanoseconds: UInt64.random(in: CompanionOverlayTiming.typingDotsSeconds))
@@ -501,11 +795,13 @@ final class CompanionViewModel: ObservableObject {
                 phase: .streaming,
                 distractionInterventionActive: isDistractionIntervention,
                 workReturnFinalActive: false,
+                ambientSpitActive: false,
                 talkingStripFilename: activeTalkingStripFilename,
                 idleStripFilename: activeIdleStripFilename,
                 streamTailIdleStripFilename: nil,
                 useShortPhraseStream: deliveryUsesShortPhraseSprite,
-                deliverySpeechStyle: deliverySpeechStyle
+                deliverySpeechStyle: deliverySpeechStyle,
+                idleSinglePass: false
             )
             let minStream = streamSeq.minimumElapsedInStreamingBeforeHolding()
             let typedFor = Date().timeIntervalSince(streamingStartedAt)
@@ -556,11 +852,15 @@ final class CompanionViewModel: ObservableObject {
             activeIdleStripFilename = GremlinIdleSpritePool.secondaryStrip
             nextIdleStripMustBePrimary = true
             pendingSecondaryIdleReaction = false
+            pageReactionIdle2SinglePassActive = true
+            scheduleIdle2SinglePassHandoffToPrimary()
+            typingSpriteEpoch = UUID()
             return
         }
         if nextIdleStripMustBePrimary {
             activeIdleStripFilename = GremlinIdleSpritePool.primaryStrip
             nextIdleStripMustBePrimary = false
+            pageReactionIdle2SinglePassActive = false
             return
         }
         if activeIdleStripFilename == GremlinIdleSpritePool.secondaryStrip {
@@ -570,27 +870,45 @@ final class CompanionViewModel: ObservableObject {
         activeIdleStripFilename = GremlinIdleSpritePool.primaryStrip
     }
 
-    /// Поштучное смещение вниз; затем текст очищается.
+    /// Поштучное вязкое стекание вниз; затем текст очищается.
     private func animateTextFallAndClear() async {
         let text = visibleText
         let n = text.count
         guard n > 0 else { return }
         phase = .textFalling
         charFallOffsetsY = Array(repeating: 0, count: n)
+        charFlowOffsetsX = Array(repeating: 0, count: n)
+        let slimeTravel: ClosedRange<CGFloat> = 132...214
+        // Медленный старт (прилипла), затем ускорение и мягкое «срывание» капли.
+        let viscous = Animation.timingCurve(0.52, 0.02, 0.62, 1.0, duration: CompanionOverlayTiming.charFallDuration)
         for i in 0..<n {
             if Task.isCancelled { return }
             try? await Task.sleep(nanoseconds: CompanionOverlayTiming.charFallStaggerNanoseconds)
-            let drop = CGFloat.random(in: 96...172)
-            withAnimation(.easeIn(duration: CompanionOverlayTiming.charFallDuration)) {
-                var copy = charFallOffsetsY
-                if i < copy.count {
-                    copy[i] = drop
-                    charFallOffsetsY = copy
+            let wobble = CGFloat((i % 5) - 2) * 5.5
+            let drop = CGFloat.random(in: slimeTravel) + wobble
+            // Тянем слизь к горизонтальному центру экрана (пузырь у курсора слева — иначе всё уезжает вниз-влево).
+            let centerPull: CGFloat = {
+                switch cursorZone {
+                case .left:
+                    return CGFloat.random(in: 52...96)
+                case .right:
+                    return CGFloat.random(in: -96...(-52))
+                case .center:
+                    return CGFloat.random(in: -18...18)
+                }
+            }()
+            let drift = centerPull + CGFloat.random(in: -12...12) + CGFloat((i % 3) - 1) * 2
+            withAnimation(viscous) {
+                if i < charFallOffsetsY.count {
+                    charFallOffsetsY[i] = drop
+                }
+                if i < charFlowOffsetsX.count {
+                    charFlowOffsetsX[i] = drift
                 }
             }
         }
         let lastStartDelay = Double(max(0, n - 1)) * Double(CompanionOverlayTiming.charFallStaggerNanoseconds) / 1_000_000_000
-        let settle = lastStartDelay + CompanionOverlayTiming.charFallDuration + 0.06
+        let settle = lastStartDelay + CompanionOverlayTiming.charFallDuration + 0.12
         try? await Task.sleep(nanoseconds: UInt64(settle * 1_000_000_000))
         if Task.isCancelled { return }
         var endTx = Transaction()
@@ -598,6 +916,21 @@ final class CompanionViewModel: ObservableObject {
         withTransaction(endTx) {
             visibleText = ""
             charFallOffsetsY = []
+            charFlowOffsetsX = []
         }
     }
+
+#if DEBUG
+    func forceLifecycleTerminalForTesting() {
+        markLifecycleTerminalAfterFinal()
+    }
+
+    func forceAmbientSpitForTesting() {
+        ambientSpitTask?.cancel()
+        ambientSpitTask = nil
+        ambientSpitActive = true
+        appendSpitStains()
+        typingSpriteEpoch = UUID()
+    }
+#endif
 }

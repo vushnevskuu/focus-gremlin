@@ -2,7 +2,8 @@ import Foundation
 
 /// Обрезка реплики до короткой «цитаты» (нейросеть + шаблоны).
 enum GremlinLineFormatter {
-    static let maxWordsPerQuote = 5
+    /// Достаточно для одной **законченной** едкой реплики; режется после ответа модели.
+    static let maxWordsPerQuote = 12
 
     static func clampToMaxWords(_ text: String, maxWords: Int) -> String {
         let parts = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).map(String.init)
@@ -22,6 +23,8 @@ final class GremlinOrchestrator {
     private var lastPageChangeContextKey: String?
     private let selector = MessageSelector()
     private var recentMemory = RecentMessageMemory()
+    /// Последняя **смысловая** реплика (отпечаток `normalizeForDedup`) — не показывать ту же подряд.
+    private var lastSubstantiveDedupKey: String?
 
     init(policy: InterruptionPolicy) {
         self.interruptionPolicy = policy
@@ -37,12 +40,16 @@ final class GremlinOrchestrator {
 
     func resetMemoryForTesting() {
         recentMemory = RecentMessageMemory()
+        lastSubstantiveDedupKey = nil
     }
 
     /// Короткая оценка новой страницы doomscroll (после смены вкладки). Не использует кулдаун вмешательств и не пишет реплику в сессию.
     func evaluateNewDoomscrollPage(
         bundleID: String,
         windowTitle: String?,
+        pageTitle: String?,
+        pageURL: String?,
+        pageSemanticSnippet: String?,
         settings: SettingsStore,
         llm: any LLMProvider,
         screenshotJPEG: Data?
@@ -51,7 +58,9 @@ final class GremlinOrchestrator {
         if let t = lastPageSkimAt, Date().timeIntervalSince(t) < 3.5 { return nil }
 
         let visionModel = settings.smartVisionModel.trimmingCharacters(in: .whitespacesAndNewlines)
-        let useVision = screenshotJPEG != nil && settings.smartVisionConsent && !visionModel.isEmpty
+        let wantsVisionBase = screenshotJPEG != nil && settings.smartVisionConsent
+        let visionChatModel = settings.effectiveModelForMultimodalCall(smartVisionModel: visionModel, attachVision: wantsVisionBase)
+        let useVision = wantsVisionBase && visionChatModel != nil
         let jpegPayload: [Data] = {
             guard useVision, let j = screenshotJPEG else { return [] }
             return [j]
@@ -64,6 +73,9 @@ final class GremlinOrchestrator {
         let userPrompt = GremlinPrompts.newDoomscrollPageSkimPrompt(
             bundleID: bundleID,
             windowTitle: windowTitle,
+            pageTitle: pageTitle,
+            pageURL: pageURL,
+            pageSemanticSnippet: pageSemanticSnippet,
             hasAttachedScreenshot: useVision
         )
 
@@ -72,7 +84,7 @@ final class GremlinOrchestrator {
                 systemPrompt: systemPrompt,
                 userPrompt: userPrompt,
                 jpegImages: jpegPayload,
-                chatModel: useVision ? visionModel : nil
+                chatModel: useVision ? visionChatModel : nil
             )
             let trimmed = String(raw.prefix(400)).trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { return nil }
@@ -88,7 +100,8 @@ final class GremlinOrchestrator {
     }
 
     /// Возвращает nil, если сейчас нельзя вмешиваться (кулдаун/лимит).
-    /// `screenshotJPEG`: целый кадр **переднего** окна; `cursorNeighborhoodJPEG` — только запас, если окно не снялось (кроп у курсора не смешивается с окном в одном запросе).
+    /// `screenshotJPEG`: целый кадр **переднего** окна; `cursorNeighborhoodJPEG` — локальный кроп у курсора.
+    /// Если есть оба, даём модели и общий контекст страницы, и точечную мишень под курсором.
     func maybeProduceLine(
         context: GremlinInterventionContext,
         settings: SettingsStore,
@@ -114,15 +127,15 @@ final class GremlinOrchestrator {
             guard interruptionPolicy.canFire() else { return nil }
         }
 
-        var useLLM = settings.useLLMForLines
-        var llmHeldByInterval = false
+        let useLLM = settings.useLLMForLines
         let minInterval = settings.llmMinIntervalSeconds
 
-        if useLLM {
-            if let last = lastLLMCall, Date().timeIntervalSince(last) < minInterval {
-                useLLM = false
-                llmHeldByInterval = true
-            }
+        // Не подменяем нейросеть шаблонами/междометиями — иначе «агент» бесконечно повторяет мусор, пока ждём интервал Ollama.
+        if useLLM, !pageChangeBypass, let last = lastLLMCall, Date().timeIntervalSince(last) < minInterval {
+            AppLogger.llm.debug(
+                "intervention skipped: LLM min interval \(minInterval, privacy: .public)s not elapsed (no template filler)"
+            )
+            return nil
         }
 
         let template = selector.selectTemplate(
@@ -133,25 +146,36 @@ final class GremlinOrchestrator {
         )
 
         let visionModel = settings.smartVisionModel.trimmingCharacters(in: .whitespacesAndNewlines)
-        let visionConsent = settings.smartVisionConsent && !visionModel.isEmpty
+        let hasMultimodalModel = settings.effectiveModelForMultimodalCall(smartVisionModel: visionModel, attachVision: true) != nil
+        let visionConsent = settings.smartVisionConsent && hasMultimodalModel
         let windowJ = screenshotJPEG
         let cursorJ = cursorNeighborhoodJPEG
-        /// Один кадр: **целое переднее окно** (foreground), если захватился; иначе запасной кроп у курсора. Без «двух картинок» — модель читает весь фрейм окна, а не квадрат по расстоянию от мыши.
         let jpegPayload: [Data] = {
             guard visionConsent else { return [] }
+            if let w = windowJ, let c = cursorJ { return [w, c] }
             if let w = windowJ { return [w] }
             if let c = cursorJ { return [c] }
             return []
         }()
         let useVisionAttachment = !jpegPayload.isEmpty
+        let visionChatModel = settings.effectiveModelForMultimodalCall(smartVisionModel: visionModel, attachVision: useVisionAttachment)
         let visionLayout: GremlinInterventionVisionLayout = {
             guard useVisionAttachment else { return .none }
+            if windowJ != nil, cursorJ != nil { return .focusedWindowAndPointerNeighborhood }
             if windowJ != nil { return .focusedWindowOnly }
             return .pointerNeighborhoodOnly
         }()
         let avoidLines = recentMemory.substantiveSessionLinesForPrompt()
-        let pointerTrimmed = context.pointerAccessibilitySummary?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let hasVisualAnchor = useVisionAttachment || !pointerTrimmed.isEmpty
+        let requiredTextAnchorTokens = Self.extractAnchorTokens(from: context)
+        let hasContextAnchor = useVisionAttachment || !requiredTextAnchorTokens.isEmpty
+
+        func satisfiesTextAnchorRequirement(_ raw: String) -> Bool {
+            guard !useVisionAttachment else { return true }
+            guard !requiredTextAnchorTokens.isEmpty else { return true }
+            let lineTokens = Set(Self.extractAnchorTokens(from: raw))
+            guard !lineTokens.isEmpty else { return false }
+            return !lineTokens.intersection(requiredTextAnchorTokens).isEmpty
+        }
 
         logInterventionPipelineSummary(
             settings: settings,
@@ -179,10 +203,12 @@ final class GremlinOrchestrator {
                     let c = clamped(s)
                     guard !RecentMessageMemory.isLaughOrPureReactionLine(c) else { return false }
                     return recentMemory.containsSubstantiveSessionDuplicate(c)
+                        || recentMemory.containsNearDuplicateSubstantiveSession(c)
                 }
                 func lineIsAcceptable(_ raw: String) -> Bool {
                     let trimmed = String(raw.prefix(900)).trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !trimmed.isEmpty, sanitize(trimmed) != nil else { return false }
+                    guard satisfiesTextAnchorRequirement(trimmed) else { return false }
                     return !isDup(clamped(trimmed))
                 }
 
@@ -199,7 +225,7 @@ final class GremlinOrchestrator {
                     systemPrompt: sys,
                     userPrompt: user,
                     jpegImages: jpegPayload,
-                    chatModel: useVisionAttachment ? visionModel : nil
+                    chatModel: visionChatModel
                 )
                 var trimmed = String(line.prefix(900)).trimmingCharacters(in: .whitespacesAndNewlines)
                 if !lineIsAcceptable(trimmed) {
@@ -214,7 +240,7 @@ final class GremlinOrchestrator {
                         systemPrompt: sys,
                         userPrompt: user,
                         jpegImages: jpegPayload,
-                        chatModel: useVisionAttachment ? visionModel : nil
+                        chatModel: visionChatModel
                     )
                     trimmed = String(line.prefix(900)).trimmingCharacters(in: .whitespacesAndNewlines)
                 }
@@ -222,7 +248,7 @@ final class GremlinOrchestrator {
                     chosenRaw = trimmed
                 }
 
-                if chosenRaw == nil, hasVisualAnchor {
+                if chosenRaw == nil, hasContextAnchor {
                     let hailSys = GremlinPrompts.visionAnchorHailMarySystemPrompt(tone: settings.toneIntensity)
                     let hailUser = GremlinPrompts.visionAnchorHailMaryUserPrompt(
                         context: context,
@@ -233,7 +259,7 @@ final class GremlinOrchestrator {
                         systemPrompt: hailSys,
                         userPrompt: hailUser,
                         jpegImages: jpegPayload,
-                        chatModel: useVisionAttachment ? visionModel : nil
+                        chatModel: visionChatModel
                     )
                     trimmed = String(line.prefix(900)).trimmingCharacters(in: .whitespacesAndNewlines)
                     if lineIsAcceptable(trimmed) {
@@ -246,7 +272,7 @@ final class GremlinOrchestrator {
                     lastLLMCall = Date()
                     settings.noteGremlinLLMSuccess()
                     logLineOutcome(settings: settings, source: "llm", line: picked)
-                } else if hasVisualAnchor {
+                } else if hasContextAnchor {
                     settings.noteGremlinLLMFailure("Fallback: контекстный якорь без шаблона.")
                     final = contextAnchoredFallbackEnglish(context: context)
                     lastLLMCall = Date()
@@ -259,7 +285,7 @@ final class GremlinOrchestrator {
             } catch {
                 AppLogger.llm.error("LLM failed: \(error.localizedDescription, privacy: .public)")
                 settings.noteGremlinLLMFailure(error.localizedDescription)
-                if hasVisualAnchor {
+                if hasContextAnchor {
                     do {
                         let hailSys = GremlinPrompts.visionAnchorHailMarySystemPrompt(tone: settings.toneIntensity)
                         let hailUser = GremlinPrompts.visionAnchorHailMaryUserPrompt(
@@ -271,7 +297,7 @@ final class GremlinOrchestrator {
                             systemPrompt: hailSys,
                             userPrompt: hailUser,
                             jpegImages: jpegPayload,
-                            chatModel: useVisionAttachment ? visionModel : nil
+                            chatModel: visionChatModel
                         )
                         let trimmed = String(line.prefix(900)).trimmingCharacters(in: .whitespacesAndNewlines)
                         if !trimmed.isEmpty, sanitize(trimmed) != nil {
@@ -294,22 +320,35 @@ final class GremlinOrchestrator {
                     logLineOutcome(settings: settings, source: "template_after_error", line: final)
                 }
             }
-        } else if llmHeldByInterval, settings.useLLMForLines {
-            final = TemplatePhraseBank.vocalInterjection(language: .en, memory: recentMemory)
         } else {
             final = template
         }
 
         let raw = sanitize(final) ?? template
         let cleaned = GremlinLineFormatter.clampToMaxWords(raw, maxWords: GremlinLineFormatter.maxWordsPerQuote)
+        let deliveryLine = Self.decorateLineForDelivery(cleaned, context: context)
+
+        let dedupKey = RecentMessageMemory.normalizeForDedup(deliveryLine)
+        if !RecentMessageMemory.isLaughOrPureReactionLine(deliveryLine),
+           !dedupKey.isEmpty,
+           dedupKey == lastSubstantiveDedupKey {
+            AppLogger.llm.debug(
+                "intervention suppressed: same substantive line as previous delivery (dedup match)"
+            )
+            return nil
+        }
+
         if pageChangeBypass {
             lastPageChangeLineAt = now
             lastPageChangeContextKey = context.pageIdentityKey
         } else {
             interruptionPolicy.recordFire()
         }
-        selector.registerDelivered(cleaned, memory: &recentMemory)
-        return cleaned
+        selector.registerDelivered(deliveryLine, memory: &recentMemory)
+        if !RecentMessageMemory.isLaughOrPureReactionLine(deliveryLine), !dedupKey.isEmpty {
+            lastSubstantiveDedupKey = dedupKey
+        }
+        return deliveryLine
     }
 
     private func logInterventionPipelineSummary(
@@ -364,21 +403,46 @@ final class GremlinOrchestrator {
 
     /// Короткая строка из реальных слов вкладки / AX — не из `TemplatePhraseBank`.
     private func contextAnchoredFallbackEnglish(context: GremlinInterventionContext) -> String {
-        let tokens = Self.extractAnchorTokens(from: context)
-        let a = tokens.first ?? "this"
-        let b = tokens.dropFirst().first ?? "tab"
+        let pointerTokens = Self.extractAnchorTokens(
+            from: context.pointerAccessibilitySummary ?? ""
+        )
+        let pageTokens = Self.extractAnchorTokens(
+            from: [
+                context.pageTitle,
+                context.windowTitle,
+                GremlinContextBuilder.browserLocationHint(pageURL: context.pageURL),
+                context.pageSemanticSnippet,
+                context.neuralPageChangeDigest
+            ]
+            .compactMap { $0 }
+            .joined(separator: " ")
+        )
+        let digestTokens = Self.extractAnchorTokens(from: context.neuralPageChangeDigest ?? "")
+
+        var anchors: [String] = []
+        for token in pointerTokens + pageTokens + digestTokens where !anchors.contains(token) {
+            anchors.append(token)
+        }
+        let local = anchors.first ?? "this"
+        let page = anchors.first(where: { $0 != local }) ?? "page"
+        let third = anchors.first(where: { $0 != local && $0 != page }) ?? "rot"
+
         let pools = [
-            "\(a) \(b) trash habit",
-            "Really \(a) right now",
-            "\(a) click circus loser",
-            "That \(a) junk obsession",
-            "\(a) \(b) waste clown",
-            "Mate \(a) \(b) really",
-            "\(a) tab rot garbage"
+            "\(local) smeared all over \(page) again, parasite",
+            "\(page) with \(local) and \(third), same swamp",
+            "Still licking \(local) in that \(page) gutter",
+            "\(third) glued to \(page), your brain applauds",
+            "\(local) plus \(page) again, hopeless slime pilgrim",
+            "That \(page) \(local) ritual reeks of old failure",
+            "\(third) crawling through \(page), and you stayed",
+            "You found \(local) on \(page) and called it living",
+            "\(page) soaked in \(third), perfect snack for your focus",
+            "\(local) blinking on \(page), same pathetic bait"
         ]
         for pick in pools.shuffled() {
             let clamped = GremlinLineFormatter.clampToMaxWords(pick, maxWords: GremlinLineFormatter.maxWordsPerQuote)
-            if !recentMemory.containsSubstantiveSessionDuplicate(clamped) {
+            if !recentMemory.containsSubstantiveSessionDuplicate(clamped)
+                && !recentMemory.containsNearDuplicateSubstantiveSession(clamped) {
                 return pick
             }
         }
@@ -391,19 +455,28 @@ final class GremlinOrchestrator {
     ]
 
     private static func extractAnchorTokens(from context: GremlinInterventionContext) -> [String] {
+        let urlHint = GremlinContextBuilder.browserLocationHint(pageURL: context.pageURL)
         let blob = [
             context.pointerAccessibilitySummary,
             context.pageTitle,
-            context.windowTitle
+            context.windowTitle,
+            urlHint,
+            context.pageSemanticSnippet,
+            context.neuralPageChangeDigest
         ]
         .compactMap { $0 }
         .joined(separator: " ")
-        .replacingOccurrences(of: "«", with: " ")
-        .replacingOccurrences(of: "»", with: " ")
-        .replacingOccurrences(of: "‹", with: " ")
-        .replacingOccurrences(of: "›", with: " ")
+        return extractAnchorTokens(from: blob)
+    }
 
-        let rawWords = latinTokens(from: blob)
+    private static func extractAnchorTokens(from blob: String) -> [String] {
+        let normalizedBlob = blob
+            .replacingOccurrences(of: "«", with: " ")
+            .replacingOccurrences(of: "»", with: " ")
+            .replacingOccurrences(of: "‹", with: " ")
+            .replacingOccurrences(of: "›", with: " ")
+
+        let rawWords = latinTokens(from: normalizedBlob)
             .filter { $0.count >= 3 && !anchorStopwords.contains($0) }
 
         var seen = Set<String>()
@@ -412,14 +485,6 @@ final class GremlinOrchestrator {
             words.append(w)
         }
 
-        if words.isEmpty, let urlStr = context.pageURL,
-           let url = URL(string: urlStr),
-           let host = url.host?.lowercased() {
-            let h = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-            if let first = h.split(separator: ".").first, first.count >= 2 {
-                words = [String(first)]
-            }
-        }
         if words.isEmpty {
             words = ["this"]
         }
@@ -482,5 +547,45 @@ final class GremlinOrchestrator {
 
     private static func containsCyrillic(_ s: String) -> Bool {
         s.unicodeScalars.contains { (0x0400...0x04FF).contains($0.value) || (0x0500...0x052F).contains($0.value) }
+    }
+
+    static func decorateLineForDelivery(_ line: String, context: GremlinInterventionContext) -> String {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return line }
+        guard !GremlinSpeechContext.isGiggleLike(trimmed) else { return trimmed }
+
+        let words = trimmed.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).map(String.init)
+        guard words.count <= 10 else { return trimmed }
+
+        let seedSource = [
+            context.trigger.rawValue,
+            context.pageIdentityKey ?? context.pageURL ?? context.pageTitle ?? context.windowTitle ?? context.bundleID,
+            trimmed
+        ].joined(separator: "|")
+        let bucket = stableDeterministicChecksum(seedSource) % 9
+
+        let shouldPrefix: Bool
+        switch context.trigger {
+        case .pageChange:
+            shouldPrefix = bucket <= 5
+        case .scrollSession, .boomerang:
+            shouldPrefix = bucket <= 3 || bucket == 6
+        case .sustained, .chaoticSwitching, .smartVision:
+            shouldPrefix = bucket <= 1
+        }
+        guard shouldPrefix else { return trimmed }
+
+        let prefixes = ["ha", "pfft", "heh"]
+        let prefix = prefixes[stableDeterministicChecksum(seedSource + "|giggle") % prefixes.count]
+        let decorated = "\(prefix) \(trimmed)"
+        return GremlinLineFormatter.clampToMaxWords(decorated, maxWords: GremlinLineFormatter.maxWordsPerQuote)
+    }
+
+    private static func stableDeterministicChecksum(_ text: String) -> Int {
+        var result = 0
+        for scalar in text.unicodeScalars {
+            result = (result &* 33 &+ Int(scalar.value)) & 0x7fffffff
+        }
+        return result
     }
 }

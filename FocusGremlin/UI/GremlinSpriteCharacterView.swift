@@ -19,11 +19,13 @@ struct GremlinSpriteCharacterView: View {
             phase: viewModel.phase,
             distractionInterventionActive: viewModel.distractionInterventionActive,
             workReturnFinalActive: viewModel.workReturnFinalActive,
+            ambientSpitActive: viewModel.ambientSpitActive,
             talkingStripFilename: viewModel.activeTalkingStripFilename,
             idleStripFilename: viewModel.activeIdleStripFilename,
             streamTailIdleStripFilename: nil,
             useShortPhraseStream: viewModel.deliveryUsesShortPhraseSprite,
-            deliverySpeechStyle: viewModel.deliverySpeechStyle
+            deliverySpeechStyle: viewModel.deliverySpeechStyle,
+            idleSinglePass: viewModel.useIdleSinglePassForSprite
         )
     }
 
@@ -33,10 +35,12 @@ struct GremlinSpriteCharacterView: View {
             "\(viewModel.phase)",
             "\(viewModel.deliverySpeechStyle)",
             "idle:\(viewModel.activeIdleStripFilename)",
+            "idle1pass:\(viewModel.useIdleSinglePassForSprite)",
             "talk:\(viewModel.activeTalkingStripFilename)",
             "short:\(viewModel.deliveryUsesShortPhraseSprite)",
             "div:\(viewModel.distractionInterventionActive)",
             "wfin:\(viewModel.workReturnFinalActive)",
+            "spit:\(viewModel.ambientSpitActive)",
             viewModel.typingSpriteEpoch.uuidString
         ].joined(separator: "|")
         guard let seq = sequence, seq.frameCount > 0 else {
@@ -48,6 +52,11 @@ struct GremlinSpriteCharacterView: View {
         return "\(meta)\u{1e}\(body)"
     }
 
+    /// Пока кадры не готовы, `Group` иначе даёт ширину 0 — панель схлопывается и гоблин «исчезает».
+    private var placeholderWidth: CGFloat {
+        max(displayHeight * 1.45, 96)
+    }
+
     var body: some View {
         Group {
             if let seq = sequence, seq.frameCount > 0 {
@@ -55,8 +64,12 @@ struct GremlinSpriteCharacterView: View {
                     sequence: seq,
                     displayHeight: displayHeight,
                     epoch: playbackEpoch,
-                    playbackIdentity: spritePlaybackIdentity
+                    playbackIdentity: spritePlaybackIdentity,
+                    suspendSpriteTicker: viewModel.isInteractionFocusedOnMainAppWindow
                 )
+            } else {
+                Color.clear
+                    .frame(width: placeholderWidth, height: displayHeight)
             }
         }
         .frame(height: displayHeight)
@@ -74,6 +87,7 @@ private struct GremlinFrameSequencePlaybackView: View {
     var displayHeight: CGFloat
     var epoch: Date
     var playbackIdentity: String
+    var suspendSpriteTicker: Bool
 
     var body: some View {
         GremlinNativeSequencePlayerRepresentable(
@@ -84,7 +98,8 @@ private struct GremlinFrameSequencePlaybackView: View {
             tailFps: sequence.tailFps,
             displayHeight: displayHeight,
             animationEpoch: epoch,
-            playbackIdentity: playbackIdentity
+            playbackIdentity: playbackIdentity,
+            suspendSpriteTicker: suspendSpriteTicker
         )
         .fixedSize()
         .frame(height: displayHeight)

@@ -18,6 +18,17 @@ struct RecentMessageMemory: Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Склейка «одной и той же» цитаты для анти-повтора: только буквы/цифры, слова ≥2 символов, без пунктуации.
+    static func normalizeForDedup(_ text: String) -> String {
+        let folded = text.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+        let parts = folded.components(separatedBy: Self.nonWordScalars)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { $0.count >= 2 }
+        return parts.joined(separator: " ")
+    }
+
+    private static let nonWordScalars = CharacterSet.alphanumerics.inverted
+
     /// Чистый смех/междометие без смысловой «цитаты» — не участвует в запрете повторов за сессию.
     static func isLaughOrPureReactionLine(_ text: String) -> Bool {
         let raw = normalize(text)
@@ -36,17 +47,40 @@ struct RecentMessageMemory: Sendable {
     }
 
     func containsRecent(_ text: String) -> Bool {
-        let n = Self.normalize(text)
+        let n = Self.normalizeForDedup(text)
+        guard !n.isEmpty else { return false }
         return items.contains(n)
     }
 
     func containsSubstantiveSessionDuplicate(_ text: String) -> Bool {
-        sessionSubstantiveQuotes.contains(Self.normalize(text))
+        let n = Self.normalizeForDedup(text)
+        guard !n.isEmpty else { return false }
+        return sessionSubstantiveQuotes.contains(n)
+    }
+
+    func containsNearDuplicateSubstantiveSession(_ text: String) -> Bool {
+        let candidate = Self.similarityTokenSet(text)
+        guard candidate.count >= 2 else { return false }
+        for existing in sessionSubstantiveQuotes {
+            let sample = Self.similarityTokenSet(existing)
+            guard sample.count >= 2 else { continue }
+            let intersection = candidate.intersection(sample).count
+            guard intersection >= 2 else { continue }
+            let union = candidate.union(sample).count
+            guard union > 0 else { continue }
+            let jaccard = Double(intersection) / Double(union)
+            if jaccard >= 0.5 {
+                return true
+            }
+        }
+        return false
     }
 
     mutating func record(_ text: String, trackAsSessionQuote: Bool) {
-        let n = Self.normalize(text)
-        items.append(n)
+        let n = Self.normalizeForDedup(text)
+        if !n.isEmpty {
+            items.append(n)
+        }
         if items.count > capacity {
             items.removeFirst(items.count - capacity)
         }
@@ -82,4 +116,20 @@ struct RecentMessageMemory: Sendable {
         "rawr", "grr", "grrr", "meh", "feh", "bah", "pah",
         "yawn", "yawns", "humph"
     ]
+
+    private static let similarityStopwords: Set<String> = [
+        "again", "still", "this", "that", "with", "your", "you", "the", "and", "for",
+        "from", "into", "page", "site", "tab", "same", "more", "just", "here"
+    ]
+
+    private static func similarityTokenSet(_ text: String) -> Set<String> {
+        let normalized = normalizeForDedup(text)
+        guard !normalized.isEmpty else { return [] }
+        return Set(
+            normalized
+                .split(separator: " ")
+                .map(String.init)
+                .filter { $0.count >= 3 && !similarityStopwords.contains($0) }
+        )
+    }
 }
