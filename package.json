@@ -1,5 +1,14 @@
 {
-  "name": "focus-gremlin-landing",
+  "name": "focus-gremlin-tools",
   "private": true,
-  "description": "Static landing (docs/) deployed to Vercel; macOS app lives in FocusGremlin/"
+  "description": "Developer helpers for the Focus Gremlin macOS app and landing docs.",
+  "scripts": {
+    "bootstrap": "bash scripts/bootstrap.sh",
+    "dev": "bash scripts/dev.sh",
+    "test": "bash scripts/test.sh",
+    "build:release": "bash scripts/build_release.sh",
+    "run:release": "bash scripts/run_built_app.sh release",
+    "install:desktop": "bash scripts/install_to_desktop.sh",
+    "landing:build": "bash scripts/vercel-build.sh"
+  }
 }

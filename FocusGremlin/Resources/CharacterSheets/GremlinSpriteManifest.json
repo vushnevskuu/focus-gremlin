@@ -50,8 +50,7 @@
     "talking": "idle",
     "spit": "idle",
     "short_phrase": "talking",
-    "smile": "talking",
-    "final": "talking"
+    "smile": "talking"
   },
   "behaviorMapping": {
     "idle": "persistent presence / idle loops only (never final)",

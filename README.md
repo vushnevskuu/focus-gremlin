@@ -1,117 +1,168 @@
 # Focus Gremlin
 
-Нативное macOS-приложение: плавающий «гремлин» следует за курсором и локально (правила + опционально Ollama) комментирует отвлечения.
+`Focus Gremlin` is a native macOS overlay app that follows the cursor with a sprite-driven goblin and comments on distracting browser sessions. The app is built in SwiftUI/AppKit, runs locally, and can optionally use Ollama for page-aware commentary.
 
-## Лендинг (GitHub Pages)
+## What you get
 
-Статическая страница лежит в каталоге [`docs/`](docs/). Чтобы опубликовать сайт:
+- Cursor-following goblin overlay rendered in a transparent `NSPanel`
+- Sprite-sheet driven animation system (`idle`, `talking`, `spit`, `final`)
+- Viscous slime spit effect with live glass/material backdrop
+- Rule-based distraction detection plus optional local LLM / VLM commentary
+- Debug, test, release, and desktop-install scripts ready for a cloned repo
 
-1. Репозиторий на GitHub → **Settings** → **Pages**.
-2. **Build and deployment** → Source: **Deploy from a branch**.
-3. Branch: `main`, folder: **`/docs`**, Save.
+## Requirements
 
-Сайт будет доступен по адресу вида `https://<user>.github.io/focus-gremlin/` (после первого деплоя подставьте свой URL в `docs/index.html` в тегах `canonical` и `og:image`, если имя репозитория другое).
+- macOS 14 or newer
+- Full Xcode installed in `/Applications/Xcode.app`
+- Command line tools selected via `xcode-select`
+- Optional: `xcodegen` if you want to regenerate `FocusGremlin.xcodeproj` from `project.yml`
+- Optional: [Ollama](https://ollama.com) for local text or vision models
 
-## Лендинг (Vercel)
-
-В корне репозитория уже лежит [`vercel.json`](vercel.json): при деплое копируется [`docs/`](docs/) → `dist/`, в `canonical` и Open Graph подставляется `https://$VERCEL_URL` (чтобы превью не вели на GitHub Pages).
-
-1. Зайди на [vercel.com](https://vercel.com) → **Add New…** → **Project** → импортируй `vushnevskuu/focus-gremlin` (или свой форк).
-2. **Framework Preset:** Other (или оставь авто — сработает `vercel.json`).
-3. **Build / Output** подтянутся из `vercel.json`; менять Root Directory **не нужно** (корень репо).
-4. **Deploy**. Продакшен-алиас проекта: **https://focus-gremlin.vercel.app** (каждый пуш в `main` пересоберёт сайт, если включён Git integration).
-
-При своём домене в Vercel при желании обнови ссылки в `docs/index.html` вручную.
-
-Локальная проверка сборки:
+## Quick Start
 
 ```bash
-bash scripts/vercel-build.sh && open dist/index.html
-```
-
-CLI (если установлен и выполнен `vercel login`): из корня репозитория `npx vercel@latest --prod`.
-
-## Установка Xcode на чистую систему
-
-Полный **Xcode** (не только Command Line Tools) ставится так:
-
-1. Открой страницу в Mac App Store (уже можно вызвать из терминала):
-   `open macappstore://apps.apple.com/app/xcode/id497799835`
-2. Нажми **Получить / Установить** и дождись окончания загрузки (~10+ ГБ).
-3. После установки выполни:
-   `scripts/after_xcode_installed.sh`  
-   (попросит `sudo` для `xcode-select`, примет лицензию, соберёт и откроет приложение).
-
-**Альтернатива (CLI):** установлены Homebrew-пакеты `xcodes` и `aria2`. В терминале (интерактивно, с Apple ID):
-`xcodes install 16.3 --select --experimental-unxip`
-
-## Проект Xcode
-
-Файл `FocusGremlin.xcodeproj` **генерируется [XcodeGen](https://github.com/yonaskolb/XcodeGen)** из `project.yml` (совместимость с Xcode 26+). После правок структуры таргетов выполните:
-
-```bash
-brew install xcodegen
-xcodegen generate
-```
-
-Устаревший `gen_pbx.py` можно не использовать, если работаете через XcodeGen.
-
-## Сборка и запуск
-
-1. Откройте `FocusGremlin.xcodeproj` в **Xcode** (рекомендуется `xcode-select` на `Xcode.app`, см. `scripts/after_xcode_installed.sh`).
-2. Схема **Focus Gremlin** → Run (`⌘R`).
-3. Тесты: `⌘U` или `xcodebuild -scheme FocusGremlin -destination 'platform=macOS' test`.
-
-## Ярлык на рабочем столе
-
-После сборки с фиксированным DerivedData:
-
-```bash
+git clone <your-fork-or-repo-url>
 cd FocusGremlin
-xcodebuild -scheme FocusGremlin -configuration Debug -derivedDataPath ./build -destination 'platform=macOS' build
-./create_desktop_shortcut.sh
+bash scripts/bootstrap.sh
+bash scripts/dev.sh
 ```
 
-Или укажите путь к `.app` вручную: `./create_desktop_shortcut.sh /path/to/FocusGremlin.app`
+What this does:
 
-## Smart Mode
+1. validates the local Xcode toolchain
+2. regenerates `FocusGremlin.xcodeproj` from `project.yml` if `xcodegen` is installed and the project is stale
+3. builds a Debug app into `.derivedDataBuild/dev`
+4. launches the built app
 
-1. Установите vision-модель в Ollama, например: `ollama pull llava`.
-2. В настройках приложения включите **согласие**, затем **Smart Mode**, задайте **Vision-модель** (по умолчанию `llava`) и интервал семплинга.
-3. Выдайте **Запись экрана** для Focus Gremlin в «Системные настройки».
-4. Кадр сжимается в JPEG в памяти и отправляется только на `127.0.0.1` (Ollama). Опция «отладка» пишет один файл `debug_last_frame.jpg` в Application Support.
+## Development Workflow
 
-## Ollama
+### Start a local debug build
+
+```bash
+bash scripts/dev.sh
+```
+
+Built app path:
+
+```text
+.derivedDataBuild/dev/Build/Products/Debug/FocusGremlin.app
+```
+
+### Run tests
+
+```bash
+bash scripts/test.sh
+```
+
+### Build a release app
+
+```bash
+bash scripts/build_release.sh
+```
+
+Release bundle path:
+
+```text
+.derivedDataBuild/release/Build/Products/Release/FocusGremlin.app
+```
+
+### Launch an already built app
+
+```bash
+bash scripts/run_built_app.sh debug
+bash scripts/run_built_app.sh release
+```
+
+You can also pass an explicit `.app` path:
+
+```bash
+bash scripts/run_built_app.sh /absolute/path/to/FocusGremlin.app
+```
+
+### Copy the release build to the Desktop
+
+```bash
+bash scripts/install_to_desktop.sh
+```
+
+## Project Structure
+
+```text
+FocusGremlin/                 app source
+FocusGremlinTests/            unit tests
+FocusGremlin.xcodeproj/       generated Xcode project
+project.yml                   XcodeGen source of truth
+scripts/                      bootstrap/build/test/release helpers
+docs/                         optional landing page
+```
+
+## App Behavior
+
+- The goblin becomes active in distracting contexts and can react to page changes.
+- `idle_2` is reserved for page-reaction beats, then it hands off back to `idle_1`.
+- Ambient spits are only triggered during doomscroll-like idle windows, not while a line is already speaking.
+- After the `final` sequence, slime stains dissolve instead of popping away instantly.
+
+## Local Models and Smart Mode
+
+The app runs without Ollama, but commentary falls back to local templates.
+
+### Text model example
 
 ```bash
 ollama serve
 ollama pull llama3.2
 ```
 
-В настройках приложения укажите базовый URL (по умолчанию `http://127.0.0.1:11434`) и имя модели. Если Ollama недоступна, используются шаблонные фразы.
+### Vision model example
 
-## Права (Privacy)
+```bash
+ollama pull llava
+```
 
-| Право | Зачем | Без него |
-|------|--------|----------|
-| **Accessibility** | Заголовок активного окна (вкладка браузера и т.д.) | Классификация только по bundle ID + грубые эвристики |
-| **Input Monitoring** (иногда в паре с Accessibility) | Глобальный монитор колёсика мыши | Нет детектора «длинного скролла», остаются время/alt-tab |
-| **Screen Recording** | Только для будущего Smart Mode | Не нужен для текущего MVP |
+Inside the app:
 
-Кнопка в onboarding / настройках открывает системные настройки приватности.
+1. enable the agent
+2. enable Smart Mode
+3. set the Ollama base URL if needed (`http://127.0.0.1:11434` by default)
+4. choose the text and vision models
 
-## Подпись и распространение
+## macOS Privacy Permissions
 
-- Для отладки: **Signing & Capabilities** → Team, или оставьте automatic signing с личным Apple ID.
-- **Hardened Runtime** включён в проекте; для нотаризации добавьте нужные entitlements (сейчас sandbox **выключен** — так проще для Accessibility/глобальных мониторов).
-- Bundle ID по умолчанию: `com.focusgremlin.app` (смените под себя).
+The product works best when these permissions are granted to the built app:
 
-## Отладка
+| Permission | Why it matters |
+| --- | --- |
+| Accessibility | active window metadata, browser context, hover inspection |
+| Input Monitoring | reliable global scroll monitoring on some systems |
+| Screen Recording | Smart Mode vision capture |
+| Apple Events / Automation | browser tab title / URL access where supported |
 
-- Логи: консоль OSLog, подсистема `Bundle.main.bundleIdentifier`, категории `app`, `focus`, `overlay`, `llm`.
-- Оверлей: `NSPanel` с `ignoresMouseEvents = true` — клики проходят сквозь пузырь.
-- Если панель не видна: проверьте, что агент включён в настройках и окно не вне всех экранов.
+If you rebuild frequently with ad-hoc signing, macOS may ask for these permissions again for the new build.
 
-## Перегенерация `project.pbxproj`
+## Performance Notes
 
-При запуске `python3 gen_pbx.py` идентификаторы таргетов меняются — обновите `BlueprintIdentifier` в `xcshareddata/xcschemes/FocusGremlin.xcscheme` или пересоздайте схему в Xcode.
+- Sprite playback is handled inside AppKit with a `DispatchSourceTimer`, not a SwiftUI timeline.
+- The spit overlay state is split out of the main companion view model to avoid full overlay re-layout on every stain update.
+- The spit material uses a single outer goo mask for the optical stack, which avoids repeated mask/compositing passes for every highlight layer.
+- Cursor following updates at 24 Hz and reduces spit-panel frame churn when the cursor is stationary.
+
+## Release / Publication Notes
+
+- `project.yml` is the canonical project definition.
+- `FocusGremlin.xcodeproj` is committed so the repo is usable without XcodeGen.
+- Local build artifacts live under `.derivedDataBuild/` and are gitignored.
+- The repository already contains `docs/` plus `vercel.json` for an optional landing page deploy.
+
+## Optional Landing Build
+
+```bash
+bash scripts/vercel-build.sh
+open dist/index.html
+```
+
+## Troubleshooting
+
+- If `bash scripts/dev.sh` fails immediately, open Xcode once and make sure `xcode-select -p` points at `/Applications/Xcode.app/Contents/Developer`.
+- If the app launches but does not “see” browser context, re-check Accessibility and Automation permissions.
+- If Smart Mode feels blind, make sure Screen Recording is granted and the selected Ollama vision model is installed locally.

@@ -63,8 +63,10 @@
 		870C452BD27FDC24E92E58E8 /* talking_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 26BEA2C0CC7EE482445F75E5 /* talking_2.png */; };
 		87863A9841AA283D3958631A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A88B05432F185EDCDD95A2 /* OnboardingView.swift */; };
 		87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F66B3EA09A40F12974FF07 /* FocusGremlinApp.swift */; };
+		89E49BCE3921C710D8B714C7 /* GoblinSpitOverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A6A166715E6E4E5024E727 /* GoblinSpitOverlayModel.swift */; };
 		90D9D503417743CD8C148703 /* GremlinLLMBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A565A92A254234CE32236565 /* GremlinLLMBackend.swift */; };
 		938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */; };
+		C0FFEE01BABE0011D112234 /* SpitMetalOffscreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE01BABE0011D112233 /* SpitMetalOffscreenTests.swift */; };
 		9CDDB66360CB123E6F7293BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F86C65E7B49580589DEB9818 /* Assets.xcassets */; };
 		A20D8D39ABA7F37236612112 /* MessageSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3B91CF0737673B66F32633 /* MessageSelector.swift */; };
 		A4E7D99CBD56BD29D5D64512 /* WindowContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62078116FD536B6645C7C0 /* WindowContextProvider.swift */; };
@@ -84,7 +86,11 @@
 		EA4A1583598E69F9CE158258 /* GremlinSpriteSheetGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588B5053CB08C291D2E447F3 /* GremlinSpriteSheetGeometry.swift */; };
 		F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8649C33730FA9D3BF8BBA7D9 /* FocusEngineService.swift */; };
 		F4CC8978B62210A54C032611 /* GremlinPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF73CDD89C4C8C7C5AB4604 /* GremlinPrompts.swift */; };
-		FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */; };
+						FAEB72F401DBA523416AEC49 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7ACC34A8E54CBC5E817FC0 /* PermissionGate.swift */; };
+		B7139C0D2E8FA1B09C5D7E020 /* SalivaMetalShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B7139C0D2E8FA1B09C5D7E010 /* SalivaMetalShader.metal */; };
+		B7139C0D2E8FA1B09C5D7E021 /* SalivaMetalTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7139C0D2E8FA1B09C5D7E011 /* SalivaMetalTypes.swift */; };
+		B7139C0D2E8FA1B09C5D7E022 /* SalivaMetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7139C0D2E8FA1B09C5D7E012 /* SalivaMetalRenderer.swift */; };
+		B7139C0D2E8FA1B09C5D7E023 /* SpitMetalContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7139C0D2E8FA1B09C5D7E013 /* SpitMetalContainerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -131,6 +137,7 @@
 		4A955B13B21F845B9E548EF7 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		4D4658ACB2923A75258AD916 /* GremlinSpriteThumbnailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteThumbnailLoader.swift; sourceTree = "<group>"; };
 		52BA35BDD806D7AFEFBF83EE /* idle_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = idle_1.png; sourceTree = "<group>"; };
+		55A6A166715E6E4E5024E727 /* GoblinSpitOverlayModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoblinSpitOverlayModel.swift; sourceTree = "<group>"; };
 		588B5053CB08C291D2E447F3 /* GremlinSpriteSheetGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpriteSheetGeometry.swift; sourceTree = "<group>"; };
 		5A771457667A29DA7C98FAA4 /* GremlinSpriteManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GremlinSpriteManifest.json; sourceTree = "<group>"; };
 		5A8941943F58A9BE6C456CA2 /* FocusTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTypes.swift; sourceTree = "<group>"; };
@@ -172,6 +179,7 @@
 		E2BF4A40C3943BFA55AE27D7 /* SmartCategoryMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCategoryMerge.swift; sourceTree = "<group>"; };
 		E6644AEC5BA1866539180545 /* GremlinTypingVoicePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinTypingVoicePlayer.swift; sourceTree = "<group>"; };
 		EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusGremlinTests.swift; sourceTree = "<group>"; };
+		C0FFEE01BABE0011D112233 /* SpitMetalOffscreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpitMetalOffscreenTests.swift; sourceTree = "<group>"; };
 		EC5219A59231E1AAA764C339 /* GremlinSpeechContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GremlinSpeechContext.swift; sourceTree = "<group>"; };
 		ED3B91CF0737673B66F32633 /* MessageSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSelector.swift; sourceTree = "<group>"; };
 		F36DF62341D41F9A79798044 /* MockLLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLLMProvider.swift; sourceTree = "<group>"; };
@@ -180,6 +188,10 @@
 		F84D4378CF49F97C53A6ED98 /* FocusGremlin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FocusGremlin.entitlements; sourceTree = "<group>"; };
 		F86C65E7B49580589DEB9818 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FBF1D3DE4AB679DF1A244669 /* talking_3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = talking_3.png; sourceTree = "<group>"; };
+		B7139C0D2E8FA1B09C5D7E010 /* SalivaMetalShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SalivaMetalShader.metal; sourceTree = "<group>"; };
+		B7139C0D2E8FA1B09C5D7E011 /* SalivaMetalTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalivaMetalTypes.swift; sourceTree = "<group>"; };
+		B7139C0D2E8FA1B09C5D7E012 /* SalivaMetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalivaMetalRenderer.swift; sourceTree = "<group>"; };
+		B7139C0D2E8FA1B09C5D7E013 /* SpitMetalContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpitMetalContainerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -225,6 +237,7 @@
 			isa = PBXGroup;
 			children = (
 				EA4384AAF9257CA8ECE1E2A2 /* FocusGremlinTests.swift */,
+				C0FFEE01BABE0011D112233 /* SpitMetalOffscreenTests.swift */,
 			);
 			path = FocusGremlinTests;
 			sourceTree = "<group>";
@@ -240,10 +253,22 @@
 			path = SmartMode;
 			sourceTree = "<group>";
 		};
+		B7139C0D2E8FA1B09C5D7E0F0 /* SpitMetal */ = {
+			isa = PBXGroup;
+			children = (
+				B7139C0D2E8FA1B09C5D7E010 /* SalivaMetalShader.metal */,
+				B7139C0D2E8FA1B09C5D7E011 /* SalivaMetalTypes.swift */,
+				B7139C0D2E8FA1B09C5D7E012 /* SalivaMetalRenderer.swift */,
+				B7139C0D2E8FA1B09C5D7E013 /* SpitMetalContainerView.swift */,
+			);
+			path = SpitMetal;
+			sourceTree = "<group>";
+		};
 		41D49FDAE46621CAC245EE93 /* Overlay */ = {
 			isa = PBXGroup;
 			children = (
 				D6D6CCB947549E1CB892B852 /* CompanionViewModel.swift */,
+				55A6A166715E6E4E5024E727 /* GoblinSpitOverlayModel.swift */,
 				72E049620BA44901C27E77F5 /* OverlayPanelController.swift */,
 			);
 			path = Overlay;
@@ -282,6 +307,7 @@
 				91F896C2E1F1BFB8DD195D18 /* LLM */,
 				227811D53A7B730983AB9C28 /* Onboarding */,
 				41D49FDAE46621CAC245EE93 /* Overlay */,
+				B7139C0D2E8FA1B09C5D7E0F0 /* SpitMetal */,
 				4DC89045E77D1C076FD224E2 /* Permissions */,
 				BAFBFE0550EDC6BEF83F2C92 /* Persistence */,
 				10553630EEC4BD1C5D93D6C7 /* Resources */,
@@ -528,7 +554,12 @@
 				F092F8D0ACCEE5A33FED3B24 /* FocusEngineService.swift in Sources */,
 				87A19CCEDA74A49C86A79A67 /* FocusGremlinApp.swift in Sources */,
 				60CBA67B0F739898640E81A2 /* FocusTypes.swift in Sources */,
+				89E49BCE3921C710D8B714C7 /* GoblinSpitOverlayModel.swift in Sources */,
 				36BB71E3EAB50F67E7CAD1D2 /* GoblinSpitOverlayView.swift in Sources */,
+				B7139C0D2E8FA1B09C5D7E020 /* SalivaMetalShader.metal in Sources */,
+				B7139C0D2E8FA1B09C5D7E021 /* SalivaMetalTypes.swift in Sources */,
+				B7139C0D2E8FA1B09C5D7E022 /* SalivaMetalRenderer.swift in Sources */,
+				B7139C0D2E8FA1B09C5D7E023 /* SpitMetalContainerView.swift in Sources */,
 				18A7A2D9D90D89953E035CAE /* GremlinCharacterAnimationResolver.swift in Sources */,
 				67EF5BCA366ECD73F44D94A9 /* GremlinCompanionSpriteStateMachine.swift in Sources */,
 				CA21ABF150018CCA437E50E3 /* GremlinContextBuilder.swift in Sources */,
@@ -585,6 +616,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				938EDF33C07FE9FFCDB2A4EF /* FocusGremlinTests.swift in Sources */,
+				C0FFEE01BABE0011D112234 /* SpitMetalOffscreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

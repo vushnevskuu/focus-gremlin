@@ -139,12 +139,14 @@ final class CompanionViewModelPageReactionTests: XCTestCase {
 
         XCTAssertFalse(viewModel.spitStains.isEmpty)
         for stain in viewModel.spitStains {
-            XCTAssertTrue((0.45...0.55).contains(stain.normalizedX))
-            XCTAssertTrue((0.44...0.56).contains(stain.normalizedY))
+            XCTAssertTrue((0.43...0.57).contains(stain.normalizedX))
+            XCTAssertTrue((0.42...0.58).contains(stain.normalizedY))
+            XCTAssertTrue((84...204).contains(Int(stain.width.rounded())))
+            XCTAssertTrue((26...104).contains(Int(stain.height.rounded())))
         }
     }
 
-    func testFinalCelebrationBeginsSpitDissolve() {
+    func testFinalCelebrationKeepsSpitsFreshUntilAfterFinalSprite() {
         let viewModel = CompanionViewModel()
         viewModel.forceAmbientSpitForTesting()
 
@@ -152,7 +154,8 @@ final class CompanionViewModelPageReactionTests: XCTestCase {
 
         XCTAssertFalse(viewModel.ambientSpitActive)
         XCTAssertFalse(viewModel.spitStains.isEmpty)
-        XCTAssertTrue(viewModel.spitStains.allSatisfy { $0.phase == .dissolving })
+        // Во время финала пятна не уходят в dissolve — каскад только после проигрывания final.
+        XCTAssertTrue(viewModel.spitStains.allSatisfy { $0.phase == .fresh })
     }
 
     func testPageReactionIdle2LeadDelayIsExposedWhileIdle2IsActive() {
@@ -161,6 +164,42 @@ final class CompanionViewModelPageReactionTests: XCTestCase {
 
         XCTAssertEqual(viewModel.activeIdleStripFilename, "idle_2.png")
         XCTAssertGreaterThan(viewModel.idle2LeadInDelayForPageReaction(), 0.18)
+    }
+}
+
+@MainActor
+final class GoblinSpitOverlayModelTests: XCTestCase {
+    func testStackingNudgeKeepsOverlappingStainsInsideCentralBand() {
+        let model = GoblinSpitOverlayModel()
+        model.setSpitPanelContentSize(CGSize(width: 1440, height: 900))
+
+        let base = GoblinSpitStain(
+            id: UUID(),
+            normalizedX: 0.50,
+            normalizedY: 0.50,
+            width: 140,
+            height: 52,
+            tailLength: 160,
+            rotationDegrees: 0,
+            seed: 1
+        )
+        let overlapping = GoblinSpitStain(
+            id: UUID(),
+            normalizedX: 0.50,
+            normalizedY: 0.50,
+            width: 140,
+            height: 52,
+            tailLength: 160,
+            rotationDegrees: 0,
+            seed: 2
+        )
+
+        model.appendStains([base, overlapping])
+
+        XCTAssertEqual(model.spitStains.count, 2)
+        XCTAssertTrue(model.spitStains.allSatisfy { (0.39...0.61).contains($0.normalizedX) })
+        XCTAssertTrue(model.spitStains.allSatisfy { (0.36...0.64).contains($0.normalizedY) })
+        XCTAssertNotEqual(model.spitStains[0].normalizedX, model.spitStains[1].normalizedX)
     }
 }
 

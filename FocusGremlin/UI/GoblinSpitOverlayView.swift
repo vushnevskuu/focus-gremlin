@@ -1,19 +1,22 @@
 import AppKit
 import SwiftUI
 
-// MARK: - Tunables (слюна на стекле: резкая маска, без крупного blur как «картинки»)
+// MARK: - Tunables (мокрое стекло: резкая маска, без теней-пятен; блик без тумана)
+
+/// `UserDefaults` = true: под плевками рисуется шахматная сетка (оценка прозрачности на контрасте).
+private let kSpitDebugGridDefaultsKey = "FocusGremlinSpitDebugGrid"
 
 private enum GoblinSpitRenderParams {
-    /// Меньше blur → острее силуэт, меньше «водяной кляксы».
-    static let maskBlurRadius: CGFloat = 2.15
-    static let maskAlphaThreshold: CGFloat = 0.56
-    static let contactShadowBlur: CGFloat = 3.2
-    static let contactShadowOpacity: Double = 0.22
-    static let specularBlur: CGFloat = 0.45
-    static let dissolveBlurMax: CGFloat = 3.8
-    /// Вязкость анимации: больше response = медленнее ползёт.
-    static let oozeSpringResponse: Double = 0.58
-    static let oozeSpringDamping: Double = 0.91
+    /// Blur маски только для слияния форм — чем меньше, тем меньше «тумана».
+    static let maskBlurRadius: CGFloat = 0.68
+    static let maskAlphaThreshold: CGFloat = 0.61
+    /// Блики без размытия (0 = острые полосы).
+    static let specularBlur: CGFloat = 0.0
+    static let dissolveBlurMax: CGFloat = 1.5
+    /// Медленнее ползёт вниз (липкая вязкость).
+    static let oozeSpringResponse: Double = 0.72
+    static let oozeSpringDamping: Double = 0.93
+    static let backdropOverscan: CGFloat = 46
 }
 
 enum GoblinSpitStainPhase: Equatable {
@@ -34,7 +37,7 @@ struct GoblinSpitStain: Identifiable, Equatable {
 }
 
 struct GoblinSpitOverlayView: View {
-    @ObservedObject var viewModel: CompanionViewModel
+    @ObservedObject var spitModel: GoblinSpitOverlayModel
 
     var body: some View {
         let dim = spitLayoutDimensions()
@@ -46,7 +49,7 @@ struct GoblinSpitOverlayView: View {
 
     /// Размер видимой области экрана: из модели (после `updateSpitPanel`) или сразу из `NSScreen`, без `GeometryReader` (у хостинга он часто даёт неверный первый проход).
     private func spitLayoutDimensions() -> CGSize {
-        let s = viewModel.spitPanelContentSize
+        let s = spitModel.spitPanelContentSize
         if s.width > 8, s.height > 8 {
             return s
         }
@@ -73,8 +76,13 @@ struct GoblinSpitOverlayView: View {
     @ViewBuilder
     private func spitZStack(width w: CGFloat, height h: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
+            if UserDefaults.standard.bool(forKey: kSpitDebugGridDefaultsKey) {
+                SpitMaterialDebugGrid()
+                    .frame(width: w, height: h)
+                    .allowsHitTesting(false)
+            }
             // Старые ниже, новые сверху — как наслоение капель, без перерисовки в одну мета-форму.
-            ForEach(Array(viewModel.spitStains.enumerated()), id: \.element.id) { index, stain in
+            ForEach(Array(spitModel.spitStains.enumerated()), id: \.element.id) { index, stain in
                 let boxW = stain.width * 2.45
                 let boxH = stain.height + stain.tailLength * 1.62 + 136
                 let cx = min(max(stain.normalizedX * w, boxW * 0.5), max(boxW * 0.5, w - boxW * 0.5))
@@ -86,6 +94,58 @@ struct GoblinSpitOverlayView: View {
             }
         }
         .frame(width: w, height: h, alignment: .topLeading)
+    }
+}
+
+/// Контрастная сетка под плевками: видно прозрачность и «стекло», не белый лист.
+private struct SpitMaterialDebugGrid: View {
+    private let cell: CGFloat = 14
+
+    var body: some View {
+        Canvas { context, size in
+            let cols = Int(ceil(size.width / cell))
+            let rows = Int(ceil(size.height / cell))
+            for row in 0..<rows {
+                for col in 0..<cols {
+                    let isLight = (row + col) % 2 == 0
+                    let rect = CGRect(
+                        x: CGFloat(col) * cell,
+                        y: CGFloat(row) * cell,
+                        width: cell,
+                        height: cell
+                    )
+                    context.fill(
+                        Path(rect),
+                        with: .color(isLight ? Color(white: 0.58) : Color(white: 0.2))
+                    )
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+/// Живой backdrop-слой: системный glass/material реально читает фон под прозрачной `NSPanel`.
+private struct GoblinBackdropGlassView: NSViewRepresentable {
+    var material: NSVisualEffectView.Material
+    var emphasized = false
+
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.state = .active
+        view.blendingMode = .behindWindow
+        view.material = material
+        view.isEmphasized = emphasized
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.state = .active
+        nsView.blendingMode = .behindWindow
+        nsView.material = material
+        nsView.isEmphasized = emphasized
     }
 }
 
@@ -126,6 +186,8 @@ private struct GoblinSpitStainView: View {
         let sway: CGFloat
         let bulbInflation: CGFloat
         let neckTaper: CGFloat
+        /// Асимметрия нижней капли: не «иконка».
+        let bulbSkew: CGFloat
         let opacity: Double
     }
 
@@ -138,25 +200,22 @@ private struct GoblinSpitStainView: View {
         let opacity: Double
     }
 
-    /// Приглушённый биологический оттенок (не неон, не мятная желейка) — читается и на белом.
-    private var slimeBody: Color {
-        Color(red: 0.58, green: 0.62, blue: 0.44)
+    /// Влажная плёнка: насыщенный жёлто-зелёный, заметнее на экране.
+    private var salivaBaseClear: Color {
+        Color(red: 0.38, green: 0.82, blue: 0.36).opacity(0.28)
     }
 
-    private var slimeThick: Color {
-        Color(red: 0.34, green: 0.40, blue: 0.26)
+    private var salivaTint: Color {
+        Color(red: 0.14, green: 0.62, blue: 0.30).opacity(0.46)
     }
 
-    private var slimeThin: Color {
-        Color(red: 0.82, green: 0.86, blue: 0.74).opacity(0.42)
+    /// Плотные зоны: глубокий изумрудно-зелёный.
+    private var salivaThick: Color {
+        Color(red: 0.05, green: 0.48, blue: 0.26).opacity(0.78)
     }
 
-    private var slimeEdgeDarken: Color {
-        Color(red: 0.18, green: 0.22, blue: 0.14)
-    }
-
-    private var slimeContactShadow: Color {
-        Color(white: 0.2)
+    private var salivaThinFilm: Color {
+        Color(red: 0.58, green: 0.88, blue: 0.52).opacity(0.18)
     }
 
     private var blobShape: GoblinSpitBlobShape {
@@ -212,6 +271,7 @@ private struct GoblinSpitStainView: View {
             sway: seededScalar(64, range: -0.18...0.18),
             bulbInflation: seededScalar(65, range: 1.04...1.32),
             neckTaper: seededScalar(66, range: 0.54...0.82),
+            bulbSkew: seededScalar(79, range: -0.42...0.42),
             opacity: 0.98
         )
 
@@ -227,6 +287,7 @@ private struct GoblinSpitStainView: View {
                     sway: side * seededScalar(70, range: 0.04...0.14),
                     bulbInflation: seededScalar(71, range: 0.84...1.10),
                     neckTaper: seededScalar(72, range: 0.50...0.76),
+                    bulbSkew: seededScalar(80, range: -0.38...0.38),
                     opacity: 0.92
                 )
             )
@@ -241,6 +302,7 @@ private struct GoblinSpitStainView: View {
                     sway: seededScalar(76, range: -0.08...0.08),
                     bulbInflation: seededScalar(77, range: 0.72...0.94),
                     neckTaper: seededScalar(78, range: 0.46...0.68),
+                    bulbSkew: seededScalar(81, range: -0.5...0.5),
                     opacity: 0.78
                 )
             )
@@ -268,7 +330,6 @@ private struct GoblinSpitStainView: View {
 
     var body: some View {
         ZStack {
-            contactShadowView
             salivaMaterialView
         }
         .frame(width: surfaceFrameWidth, height: surfaceFrameHeight)
@@ -296,151 +357,313 @@ private struct GoblinSpitStainView: View {
         }
     }
 
-    /// Тень у плоскости стекла: мягкая, низкая, без «летающего» пятна.
-    private var contactShadowView: some View {
-        Ellipse()
-            .fill(slimeContactShadow.opacity(GoblinSpitRenderParams.contactShadowOpacity))
-            .frame(width: stain.width * (0.72 + oozeSpread * 0.14), height: max(8, stain.height * 0.12))
-            .blur(radius: GoblinSpitRenderParams.contactShadowBlur)
-            .offset(y: stain.height * 0.26 + stain.tailLength * 0.04 + oozeSlide * 0.06)
-    }
-
-    /// Тело слюны: маска → толщина/альфа → узкие блики → лёгкий контраст по краю. Без крупного blur как основы формы.
+    /// Оптика: прозрачное тело + локальная «толщина» + имитация IOR + Fresnel + острые блики (без теней-пятен).
     private var salivaMaterialView: some View {
         let mask = gooMaskView
         return ZStack {
+            residueTrailLayer
+            ZStack {
+                backdropLensLayers
+                baseGelFilm
+                refractionTintLayer
+                thicknessVariationsLayer
+                densityCoreLayer
+                chromaticEdgeFringe
+                fresnelTopHighlightLayer
+                specularHighlightLayer
+                glassClearcoatRim
+            }
+            .mask(mask)
+        }
+        .frame(width: surfaceFrameWidth, height: surfaceFrameHeight)
+    }
+
+    /// Два сдвинутых live-backdrop слоя дают не просто blur, а ощущение преломления стеклянной слизи.
+    private var backdropLensLayers: some View {
+        let overscan = GoblinSpitRenderParams.backdropOverscan
+        return ZStack {
+            GoblinBackdropGlassView(material: .hudWindow)
+                .frame(width: surfaceFrameWidth + overscan, height: surfaceFrameHeight + overscan)
+                .offset(
+                    x: seededScalar(440, range: -7...7) + oozeLeanX * 0.28,
+                    y: seededScalar(441, range: -6...8) + oozeSlide * 0.14
+                )
+                .opacity(0.92)
+
+            GoblinBackdropGlassView(material: .underWindowBackground)
+                .frame(width: surfaceFrameWidth + overscan * 1.2, height: surfaceFrameHeight + overscan * 1.2)
+                .offset(
+                    x: seededScalar(442, range: -10...10) - oozeLeanX * 0.22,
+                    y: seededScalar(443, range: -8...10) + oozeSlide * 0.08
+                )
+                .blendMode(.plusLighter)
+                .opacity(0.54)
+
+            GoblinBackdropGlassView(material: .menu, emphasized: true)
+                .frame(width: stain.width * 1.02, height: stain.height * 0.92 + stain.tailLength * 0.44)
+                .offset(
+                    x: seededScalar(444, range: -4...4),
+                    y: stain.height * 0.16 + oozeSlide * 0.05
+                )
+                .opacity(0.32)
+                .mask(coreThicknessMask)
+        }
+        .compositingGroup()
+    }
+
+    private var baseGelFilm: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        salivaThinFilm.opacity(0.88),
+                        salivaBaseClear.opacity(0.94),
+                        salivaTint.opacity(0.84),
+                        salivaTint.opacity(0.62),
+                        salivaThinFilm.opacity(0.36)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .blendMode(.screen)
+    }
+
+    /// Горизонтальный/радиальный градиент как слабый IOR (без размытия маски).
+    private var refractionTintLayer: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.18, green: 0.82, blue: 0.38).opacity(0.32),
+                    Color(red: 0.14, green: 0.58, blue: 0.28).opacity(0.12),
+                    Color(red: 0.44, green: 0.76, blue: 0.30).opacity(0.26)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            RadialGradient(
+                colors: [
+                    Color(red: 0.34, green: 0.92, blue: 0.42).opacity(0.34),
+                    Color(red: 0.16, green: 0.52, blue: 0.24).opacity(0.10)
+                ],
+                center: UnitPoint(x: 0.48, y: 0.38),
+                startRadius: 2,
+                endRadius: stain.width * 0.95
+            )
+        }
+        .blendMode(.softLight)
+    }
+
+    /// Толщина: softLight/overlay — светлее в густоте, хвосты остаются тонкими по геометрии маски.
+    private var thicknessVariationsLayer: some View {
+        ZStack {
+            Ellipse()
+                .fill(salivaThick.opacity(0.96))
+                .frame(width: stain.width * 0.36, height: stain.height * 0.2)
+                .offset(x: seededScalar(180, range: -stain.width * 0.06...stain.width * 0.04), y: -stain.height * 0.04)
+            ForEach(dripSpecs, id: \.id) { drip in
+                let reveal = max(0.16, tailReveal)
+                let effectiveLength = max(18, drip.length * reveal)
+                Capsule(style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                salivaThick.opacity(drip.id == 0 ? 0.72 : 0.52),
+                                salivaThick.opacity(drip.id == 0 ? 0.38 : 0.24)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: max(2.2, drip.width * 0.16), height: effectiveLength * 0.48)
+                    .offset(
+                        x: drip.xOffset + drip.bulbSkew * drip.width * 0.12,
+                        y: stain.height * 0.56 + effectiveLength * 0.24
+                    )
+            }
+        }
+        .blendMode(.softLight)
+    }
+
+    /// Плотные ядра и шея хвостов: толще, темнее и зеленее, чем водяная капля.
+    private var densityCoreLayer: some View {
+        ZStack {
             Rectangle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            slimeThin,
-                            slimeBody.opacity(0.78),
-                            slimeThick.opacity(0.88),
-                            slimeThick.opacity(0.92)
+                            salivaThick.opacity(0.72),
+                            salivaThick.opacity(0.94),
+                            Color(red: 0.06, green: 0.36, blue: 0.20).opacity(0.78)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .overlay {
-                    RadialGradient(
-                        colors: [
-                            slimeThick.opacity(0.35),
-                            slimeBody.opacity(0.12),
-                            Color.clear
-                        ],
-                        center: .init(x: 0.44, y: 0.36),
-                        startRadius: 2,
-                        endRadius: stain.width * 0.55
-                    )
-                    .blendMode(.multiply)
-                }
-                .overlay {
-                    RadialGradient(
-                        colors: [
-                            slimeEdgeDarken.opacity(0.45),
-                            Color.clear
-                        ],
-                        center: .bottom,
-                        startRadius: stain.width * 0.08,
-                        endRadius: stain.width * 0.95
-                    )
-                    .blendMode(.multiply)
-                }
-                .mask(mask)
+                .mask(coreThicknessMask)
+                .blendMode(.multiply)
 
-            thicknessHighlightLayer
-                .mask(mask)
-
-            specularHighlightLayer
-                .mask(mask)
-
-            glassClearcoatRim
-                .mask(mask)
+            RadialGradient(
+                colors: [
+                    Color(red: 0.72, green: 0.96, blue: 0.54).opacity(0.36),
+                    Color.clear
+                ],
+                center: UnitPoint(x: 0.46, y: 0.26),
+                startRadius: 3,
+                endRadius: stain.width * 0.52
+            )
+            .mask(coreThicknessMask)
+                .blendMode(.screen)
         }
-        .frame(width: surfaceFrameWidth, height: surfaceFrameHeight)
     }
 
-    /// Внутренняя «толще» в центре — тоньше по краю (без размытого облака).
-    private var thicknessHighlightLayer: some View {
+    /// Мягкий остаточный след от уже стекшей массы — вне текущей кромки, как слизистый мазок на стекле.
+    private var residueTrailLayer: some View {
+        ZStack {
+            ForEach(dripSpecs, id: \.id) { drip in
+                let reveal = max(0.22, tailReveal)
+                let effectiveLength = max(20, drip.length * reveal)
+                let residueHeight = effectiveLength * (0.46 + oozeSlide / 260)
+                Capsule(style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                salivaTint.opacity(0.06),
+                                salivaTint.opacity(0.14),
+                                salivaThick.opacity(0.07),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: max(2, drip.width * 0.20), height: residueHeight)
+                    .offset(
+                        x: drip.xOffset + drip.bulbSkew * drip.width * 0.10,
+                        y: stain.height * 0.72 + residueHeight * 0.16
+                    )
+                    .blur(radius: 0.7)
+                    .opacity(min(0.7, Double(0.16 + oozeSlide / 180)))
+            }
+        }
+    }
+
+    private var coreThicknessMask: some View {
         ZStack {
             Ellipse()
-                .fill(slimeThick.opacity(0.18))
-                .frame(width: stain.width * 0.48, height: stain.height * 0.28)
-                .offset(x: -stain.width * 0.04, y: -stain.height * 0.02)
+                .fill(Color.white)
+                .frame(width: stain.width * 0.74, height: stain.height * 0.62)
+                .offset(x: seededScalar(445, range: -stain.width * 0.03...stain.width * 0.03), y: -stain.height * 0.02)
+
             ForEach(dripSpecs, id: \.id) { drip in
-                let reveal = max(0.16, tailReveal)
+                let reveal = max(0.18, tailReveal)
                 let effectiveLength = max(18, drip.length * reveal)
                 Capsule(style: .continuous)
-                    .fill(slimeThick.opacity(drip.id == 0 ? 0.22 : 0.14))
-                    .frame(width: max(3, drip.width * 0.22), height: effectiveLength * 0.55)
+                    .fill(Color.white.opacity(drip.id == 0 ? 1 : 0.82))
+                    .frame(width: max(2.6, drip.width * 0.22), height: effectiveLength * 0.60)
                     .offset(
-                        x: drip.xOffset,
-                        y: stain.height * 0.58 + effectiveLength * 0.26
+                        x: drip.xOffset + drip.bulbSkew * drip.width * 0.12,
+                        y: stain.height * 0.54 + effectiveLength * 0.24
                     )
             }
         }
-        .blendMode(.multiply)
     }
 
-    /// Узкие глянцевые полоски, не диффузное свечение.
+    /// Тонкие смещённые обводки — «преломление» у кромки без drop shadow.
+    private var chromaticEdgeFringe: some View {
+        ZStack {
+            Ellipse()
+                .strokeBorder(Color(red: 0.18, green: 0.96, blue: 0.48).opacity(0.46), lineWidth: 1.0)
+                .frame(width: stain.width * (1.02 + oozeSpread * 0.06), height: stain.height * (0.88 + oozeSpread * 0.04))
+                .offset(x: -0.7, y: -stain.height * 0.04)
+            Ellipse()
+                .strokeBorder(Color(red: 0.72, green: 0.94, blue: 0.42).opacity(0.28), lineWidth: 0.8)
+                .frame(width: stain.width * (1.02 + oozeSpread * 0.06), height: stain.height * (0.88 + oozeSpread * 0.04))
+                .offset(x: 0.65, y: -stain.height * 0.04)
+        }
+        .blendMode(.screen)
+    }
+
+    /// Светлый Fresnel у верхней зоны (не тёмный мениск).
+    private var fresnelTopHighlightLayer: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.38),
+                        Color.white.opacity(0.06),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: UnitPoint(x: 0.5, y: 0.16)
+                )
+            )
+            .blendMode(.screen)
+    }
+
+    /// Острые влажные блики (без размытия).
     private var specularHighlightLayer: some View {
         ZStack {
             ForEach(dripSpecs, id: \.id) { drip in
                 let reveal = max(0.16, tailReveal)
                 let effectiveLength = max(18, drip.length * reveal)
+                let specW = max(0.9, drip.width * 0.065)
+                let yPos = stain.height * 0.5 + effectiveLength * 0.22
+                let xBase = drip.xOffset - drip.width * 0.14 + drip.bulbSkew * 3
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(drip.id == 0 ? 0.42 : 0.28))
-                    .frame(width: max(1.2, drip.width * 0.09), height: effectiveLength * 0.42)
+                    .fill(Color(red: 0.98, green: 0.995, blue: 1).opacity(drip.id == 0 ? 0.72 : 0.52))
+                    .frame(width: specW, height: effectiveLength * 0.34)
                     .blur(radius: GoblinSpitRenderParams.specularBlur)
-                    .offset(
-                        x: drip.xOffset - drip.width * 0.12,
-                        y: stain.height * 0.52 + effectiveLength * 0.24
-                    )
+                    .offset(x: xBase, y: yPos)
+                    .blendMode(.screen)
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(drip.id == 0 ? 0.95 : 0.78))
+                    .frame(width: max(0.5, specW * 0.42), height: effectiveLength * 0.32)
+                    .offset(x: xBase - specW * 0.22, y: yPos)
                     .blendMode(.screen)
             }
-            Ellipse()
-                .fill(Color.white.opacity(0.28))
-                .frame(width: stain.width * 0.22, height: stain.height * 0.06)
-                .blur(radius: 0.9)
+            Capsule(style: .continuous)
+                .fill(Color.white.opacity(0.62))
+                .frame(width: stain.width * 0.22, height: max(1.5, stain.height * 0.022))
+                .rotationEffect(.degrees(Double(seededScalar(12, range: -14...10))))
                 .offset(
-                    x: -stain.width * 0.08 + seededScalar(11, range: -4...6),
-                    y: -stain.height * 0.08
+                    x: seededScalar(13, range: -stain.width * 0.06...stain.width * 0.04),
+                    y: -stain.height * 0.06
                 )
                 .blendMode(.screen)
         }
     }
 
-    /// Тонкий френель/обод — без широкого размытого ореола.
+    /// Кромка: сильный Fresnel по периметру + узкий блик без blur-ореола.
     private var glassClearcoatRim: some View {
         ZStack {
             Ellipse()
                 .strokeBorder(
                     LinearGradient(
                         colors: [
+                            Color.white.opacity(0.72),
                             Color.white.opacity(0.38),
+                            salivaTint.opacity(0.52),
                             Color.white.opacity(0.12),
-                            slimeThin.opacity(0.2),
                             Color.clear
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1.1
+                    lineWidth: 1.05
                 )
-                .frame(width: stain.width * (1.04 + oozeSpread * 0.10), height: stain.height * (0.88 + oozeSpread * 0.06))
-                .offset(y: -stain.height * 0.05)
+                .frame(width: stain.width * (1.0 + oozeSpread * 0.08), height: stain.height * (0.84 + oozeSpread * 0.05))
+                .offset(y: -stain.height * 0.045)
             Capsule(style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.22), Color.white.opacity(0.04), Color.clear],
+                        colors: [Color.white.opacity(0.48), Color.white.opacity(0.12), Color.clear],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .frame(width: max(4, stain.width * 0.08), height: stain.height * 0.45)
-                .offset(x: -stain.width * 0.18, y: -stain.height * 0.02)
-                .blur(radius: 0.55)
+                .frame(width: max(2.5, stain.width * 0.055), height: stain.height * 0.38)
+                .offset(x: -stain.width * 0.16, y: -stain.height * 0.02)
                 .blendMode(.screen)
         }
     }
@@ -452,6 +675,21 @@ private struct GoblinSpitStainView: View {
             context.drawLayer { layer in
                 let pool = poolRect(in: size)
                 layer.fill(blobShape.path(in: pool), with: .color(.white))
+
+                // Брызги у верхнего удара — не один мягкий овал.
+                for i in 0..<6 {
+                    let rx = seededScalar(300 + i, range: pool.width * 0.08...pool.width * 0.42)
+                    let ry = seededScalar(310 + i, range: pool.height * 0.03...pool.height * 0.11)
+                    let ox = seededScalar(320 + i, range: -pool.width * 0.28...pool.width * 0.28)
+                    let oy = seededScalar(330 + i, range: pool.minY - pool.height * 0.02...pool.minY + pool.height * 0.12)
+                    let spatter = CGRect(
+                        x: pool.midX + ox - rx * 0.5,
+                        y: oy,
+                        width: rx,
+                        height: ry
+                    )
+                    layer.fill(Path(ellipseIn: spatter), with: .color(.white.opacity(Double(seededScalar(340 + i, range: 0.55...0.95)))))
+                }
 
                 for lobe in lobeSpecs {
                     layer.fill(Path(ellipseIn: lobeRect(for: lobe, in: pool)), with: .color(.white))
@@ -470,7 +708,8 @@ private struct GoblinSpitStainView: View {
                         GoblinSpitDripShape(
                             sway: drip.sway,
                             bulbInflation: drip.bulbInflation,
-                            neckTaper: drip.neckTaper
+                            neckTaper: drip.neckTaper,
+                            bulbSkew: drip.bulbSkew
                         )
                         .path(in: dripRect),
                         with: .color(.white.opacity(drip.opacity))
@@ -495,7 +734,7 @@ private struct GoblinSpitStainView: View {
         let spread = seededScalar(54, range: 0.10...0.22)
         let lean = seededScalar(55, range: -5...5)
         let tailCap = seededScalar(56, range: 1.04...1.14)
-        let oozeDuration = TimeInterval(seededScalar(52, range: 2.8...3.8))
+        let oozeDuration = TimeInterval(seededScalar(52, range: 4.2...6.0))
 
         withAnimation(
             .spring(
@@ -650,56 +889,66 @@ private struct GoblinSpitDripShape: Shape {
     let sway: CGFloat
     let bulbInflation: CGFloat
     let neckTaper: CGFloat
+    /// Сдвиг массы капли влево/вправо — нерегулярный силуэт.
+    let bulbSkew: CGFloat
 
     func path(in rect: CGRect) -> Path {
         let w = rect.width
         let h = rect.height
-        let centerX = rect.midX + sway * w * 0.16
-        let topHalf = w * 0.28
-        let neckHalf = max(w * 0.08, w * 0.13 * neckTaper)
-        let bulbW = w * (0.72 + 0.22 * bulbInflation)
-        let bulbH = w * (0.62 + 0.30 * bulbInflation)
-        let shoulderY = rect.minY + h * 0.18
-        let neckY = rect.minY + h * 0.64
-        let bulbCenterY = rect.maxY - bulbH * 0.56
+        let skew = min(max(bulbSkew, -1), 1)
+        let centerX = rect.midX + sway * w * 0.16 + skew * w * 0.12
+        let topHalf = w * (0.26 + 0.06 * abs(skew))
+        let neckHalf = max(w * 0.07, w * 0.12 * neckTaper)
+        let bulbWLeft = w * (0.62 + 0.26 * bulbInflation) * (1.0 - 0.12 * max(0, skew))
+        let bulbWRight = w * (0.62 + 0.26 * bulbInflation) * (1.0 + 0.12 * min(0, skew))
+        let bulbH = w * (0.58 + 0.34 * bulbInflation)
+        let shoulderY = rect.minY + h * 0.16
+        let neckY = rect.minY + h * 0.62
+        let bulbCenterY = rect.maxY - bulbH * 0.54
 
         let topL = CGPoint(x: rect.midX - topHalf, y: rect.minY + h * 0.02)
-        let shoulderL = CGPoint(x: rect.midX - topHalf * 0.78, y: shoulderY)
+        let shoulderL = CGPoint(x: rect.midX - topHalf * 0.76 + skew * w * 0.04, y: shoulderY)
         let neckL = CGPoint(x: centerX - neckHalf, y: neckY)
-        let bulbL = CGPoint(x: centerX - bulbW * 0.5, y: bulbCenterY)
-        let bulbB = CGPoint(x: centerX + sway * w * 0.08, y: rect.maxY)
-        let bulbR = CGPoint(x: centerX + bulbW * 0.5, y: bulbCenterY)
+        let bulbL = CGPoint(x: centerX - bulbWLeft, y: bulbCenterY)
+        let bulbB = CGPoint(x: centerX + sway * w * 0.1 + skew * w * 0.14, y: rect.maxY)
+        let bulbR = CGPoint(x: centerX + bulbWRight, y: bulbCenterY)
         let neckR = CGPoint(x: centerX + neckHalf, y: neckY)
-        let shoulderR = CGPoint(x: rect.midX + topHalf * 0.62, y: shoulderY)
-        let topR = CGPoint(x: rect.midX + topHalf * 0.72, y: rect.minY + h * 0.02)
+        let shoulderR = CGPoint(x: rect.midX + topHalf * 0.58 + skew * w * 0.06, y: shoulderY)
+        let topR = CGPoint(x: rect.midX + topHalf * 0.7, y: rect.minY + h * 0.02)
 
         var path = Path()
         path.move(to: topL)
         path.addQuadCurve(
             to: shoulderL,
-            control: CGPoint(x: rect.midX - topHalf * 1.08, y: rect.minY + h * 0.08)
+            control: CGPoint(x: rect.midX - topHalf * 1.04, y: rect.minY + h * 0.07)
         )
         path.addQuadCurve(
             to: neckL,
-            control: CGPoint(x: centerX - neckHalf * 1.26 + sway * w * 0.08, y: rect.minY + h * 0.42)
+            control: CGPoint(x: centerX - neckHalf * 1.22 + sway * w * 0.06, y: rect.minY + h * 0.4)
         )
         path.addQuadCurve(
             to: bulbL,
-            control: CGPoint(x: centerX - neckHalf * 1.34 + sway * w * 0.08, y: rect.minY + h * 0.88)
+            control: CGPoint(x: centerX - neckHalf * 1.28 + skew * w * 0.1, y: rect.minY + h * 0.84)
         )
-        path.addQuadCurve(to: bulbB, control: CGPoint(x: centerX - bulbW * 0.62, y: rect.maxY - bulbH * 0.04))
-        path.addQuadCurve(to: bulbR, control: CGPoint(x: centerX + bulbW * 0.62, y: rect.maxY - bulbH * 0.02))
+        path.addQuadCurve(
+            to: bulbB,
+            control: CGPoint(x: centerX - bulbWLeft * 0.55 - abs(skew) * w * 0.08, y: rect.maxY - bulbH * 0.05)
+        )
+        path.addQuadCurve(
+            to: bulbR,
+            control: CGPoint(x: centerX + bulbWRight * 0.58 + abs(skew) * w * 0.06, y: rect.maxY - bulbH * 0.03)
+        )
         path.addQuadCurve(
             to: neckR,
-            control: CGPoint(x: centerX + neckHalf * 1.12 + sway * w * 0.08, y: rect.minY + h * 0.88)
+            control: CGPoint(x: centerX + neckHalf * 1.08 + sway * w * 0.06, y: rect.minY + h * 0.84)
         )
         path.addQuadCurve(
             to: shoulderR,
-            control: CGPoint(x: centerX + neckHalf * 1.00, y: rect.minY + h * 0.42)
+            control: CGPoint(x: centerX + neckHalf * 0.96, y: rect.minY + h * 0.4)
         )
         path.addQuadCurve(
             to: topR,
-            control: CGPoint(x: rect.midX + topHalf * 0.96, y: rect.minY + h * 0.08)
+            control: CGPoint(x: rect.midX + topHalf * 0.92, y: rect.minY + h * 0.07)
         )
         path.closeSubpath()
         return path

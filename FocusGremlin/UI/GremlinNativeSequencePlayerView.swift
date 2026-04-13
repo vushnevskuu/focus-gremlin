@@ -80,6 +80,17 @@ final class GremlinNativeSequencePlayerView: NSView {
             epochStart = CFAbsoluteTimeGetCurrent()
         }
 
+        if let first = frames.first {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            imageView.configure(
+                frame: first,
+                displayHeight: displayHeight,
+                allowSynchronousLoad: true
+            )
+            CATransaction.commit()
+        }
+
         let maxFps = max(self.fps, self.tailFps ?? self.fps)
         let interval = 1.0 / maxFps
         let src = DispatchSource.makeTimerSource(queue: .main)

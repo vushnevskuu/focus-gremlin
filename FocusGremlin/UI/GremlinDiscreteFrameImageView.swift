@@ -25,7 +25,11 @@ final class GremlinDiscreteFrameImageView: NSView {
         super.init(coder: coder)
     }
 
-    func configure(frame: GremlinSpriteFrameRef, displayHeight: CGFloat) {
+    func configure(
+        frame: GremlinSpriteFrameRef,
+        displayHeight: CGFloat,
+        allowSynchronousLoad: Bool = false
+    ) {
         let previousFrame = configuredFrame
         guard frame.stripCellCount >= 1 else {
             if configuredFrame == nil, self.displayHeight == displayHeight { return }
@@ -77,6 +81,21 @@ final class GremlinDiscreteFrameImageView: NSView {
             stripCellIndex: cellIdx
         ), gen == loadGeneration {
             displayed = cached
+            appliedFrame = frame
+            invalidateIntrinsicContentSizeIfNeeded()
+            needsDisplay = true
+            return
+        }
+
+        if allowSynchronousLoad,
+           let loaded = GremlinSpriteThumbnailLoader.cgImage(
+                url: frame.url,
+                maxPixelDimension: maxPx,
+                stripCellCount: strip,
+                stripCellIndex: cellIdx
+           ),
+           gen == loadGeneration {
+            displayed = loaded
             appliedFrame = frame
             invalidateIntrinsicContentSizeIfNeeded()
             needsDisplay = true

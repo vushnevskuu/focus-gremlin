@@ -14,6 +14,5 @@ sudo xcodebuild -license accept || true
 xcodebuild -runFirstLaunch || true
 
 cd "$ROOT"
-xcodebuild -scheme FocusGremlin -configuration Debug -derivedDataPath ./build -destination 'platform=macOS' build
-echo "Готово: $ROOT/build/Build/Products/Debug/FocusGremlin.app"
-open "$ROOT/build/Build/Products/Debug/FocusGremlin.app"
+bash scripts/bootstrap.sh
+bash scripts/dev.sh

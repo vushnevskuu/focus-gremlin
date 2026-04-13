@@ -61,6 +61,9 @@ enum GremlinCursorZone: Equatable {
 
 @MainActor
 final class CompanionViewModel: ObservableObject {
+    /// Плевки: отдельный `ObservableObject`, чтобы панель гоблина не перерисовывалась при каждом пятне.
+    let spitOverlay = GoblinSpitOverlayModel()
+
     private static let pageReactionCooldown: TimeInterval = 0.35
     private static let pageReactionPresenceDuration: TimeInterval = 3.0
 
@@ -74,6 +77,8 @@ final class CompanionViewModel: ObservableObject {
     /// Появление колонки спрайта: при первом показе — с нуля; если гоблин уже в idle между репликами — лёгкий пульс без исчезновения.
     @Published private(set) var companionPresentOpacity: Double = 1
     @Published private(set) var companionPresentScale: CGFloat = 1
+    @Published private(set) var companionPresentOffsetY: CGFloat = 0
+    @Published private(set) var companionPresentBlurRadius: CGFloat = 0
     /// Новый цикл анимации кадров с начала при каждом сообщении.
     @Published private(set) var typingSpriteEpoch = UUID()
     /// Случайный лист `talking_1/2/3` на текущую доставку реплики (цикл только по выбранному PNG).
@@ -98,10 +103,6 @@ final class CompanionViewModel: ObservableObject {
     @Published var charFlowOffsetsX: [CGFloat] = []
     /// Межрепличный плевок: отдельный спрайт между цитатами на doomscroll-страницах.
     @Published private(set) var ambientSpitActive = false
-    /// Слизистые пятна поверх экрана.
-    @Published private(set) var spitStains: [GoblinSpitStain] = []
-    /// Размер `NSPanel` плевков (`visibleFrame`). Без этого SwiftUI `GeometryReader` часто даёт ~0×0 — пятна в левом нижнем углу.
-    @Published private(set) var spitPanelContentSize: CGSize = .zero
     /// Обновляется из оверлея по сглаженной позиции курсора.
     @Published private(set) var cursorZone: GremlinCursorZone = .center
     /// Вариант речи на время текущей доставки (по тексту или явной подсказке).
@@ -131,17 +132,13 @@ final class CompanionViewModel: ObservableObject {
         guard !workReturnFinalActive, !ambientSpitActive else { return false }
         return isDoomscrollContextActive || transientPageReactionActive
     }
-    var shouldShowSpitOverlay: Bool { !spitStains.isEmpty }
+    var shouldShowSpitOverlay: Bool { spitOverlay.shouldShowSpitOverlay }
+    /// Для тестов и отладки: снимок пятен без подписки на отдельный объект.
+    var spitStains: [GoblinSpitStain] { spitOverlay.spitStains }
 
     func setLinePipelineLocked(_ locked: Bool) {
         guard locked != linePipelineLocked else { return }
         linePipelineLocked = locked
-    }
-
-    func setSpitPanelContentSize(_ size: CGSize) {
-        guard size.width > 4, size.height > 4 else { return }
-        guard size != spitPanelContentSize else { return }
-        spitPanelContentSize = size
     }
 
     /// Спрайт виден при отвлечении между репликами, во время доставки текста и на единственном проигрывании `final`.
@@ -172,7 +169,7 @@ final class CompanionViewModel: ObservableObject {
         if category != .distracting {
             neuralDoomscrollPageDigest = nil
             stopAmbientSpitLoop(clearStainsImmediately: false)
-            if !workReturnFinalActive {
+            if !workReturnFinalActive, !spitOverlay.sequentialDissolveInProgress {
                 dissolveSpitStains(clearImmediately: false)
             }
         } else {
@@ -243,6 +240,15 @@ final class CompanionViewModel: ObservableObject {
         isDoomscrollContextActive = false
     }
 
+    /// Уход в продуктив слишком скоро после прошлого финала (антидребезг): без повторной анимации, но lifecycle = terminal, чтобы следующий doomscroll снова поднял гоблина.
+    func syncLifecycleAfterProductiveWithoutFinalAnimation() {
+        markLifecycleTerminalAfterFinal()
+        companionPresentOpacity = 1
+        companionPresentScale = 1
+        companionPresentOffsetY = 0
+        companionPresentBlurRadius = 0
+    }
+
     /// `normalizedScreenX` — 0…1 внутри `visibleFrame` экрана под курсором.
     func updateCursorZone(normalizedScreenX: CGFloat) {
         let next: GremlinCursorZone
@@ -262,7 +268,6 @@ final class CompanionViewModel: ObservableObject {
     private var pageReactionPresenceTask: Task<Void, Never>?
     private var idle2SinglePassHandoffTask: Task<Void, Never>?
     private var ambientSpitTask: Task<Void, Never>?
-    private var spitCleanupTask: Task<Void, Never>?
     private func cancelIdle2SinglePassHandoffScheduling() {
         cancelIdle2SinglePassHandoffTimerOnly()
         pageReactionIdle2SinglePassActive = false
@@ -354,9 +359,7 @@ final class CompanionViewModel: ObservableObject {
         ambientSpitTask = nil
         ambientSpitActive = false
         if clearStainsImmediately {
-            spitCleanupTask?.cancel()
-            spitCleanupTask = nil
-            spitStains = []
+            spitOverlay.cancelDissolveAndClear()
         }
     }
 
@@ -382,93 +385,31 @@ final class CompanionViewModel: ObservableObject {
     }
 
     private func appendSpitStains() {
-        let count = Int.random(in: 1...3)
+        let count = Int.random(in: 1...4)
         let newStains: [GoblinSpitStain] = (0..<count).map { index in
             let seed = Int.random(in: 1...Int.max / 4) &+ index * 97
             // Всё ещё бьём в центр, но уже не в одну и ту же точку.
-            let centerX: ClosedRange<CGFloat> = 0.45...0.55
-            let centerY: ClosedRange<CGFloat> = 0.44...0.56
+            let centerX: ClosedRange<CGFloat> = 0.43...0.57
+            let centerY: ClosedRange<CGFloat> = 0.42...0.58
             return GoblinSpitStain(
                 id: UUID(),
                 normalizedX: CGFloat.random(in: centerX),
                 normalizedY: CGFloat.random(in: centerY),
-                width: CGFloat.random(in: 74...182),
-                height: CGFloat.random(in: 24...92),
-                tailLength: CGFloat.random(in: 66...224),
-                rotationDegrees: Double.random(in: -16...16),
+                width: CGFloat.random(in: 84...204),
+                height: CGFloat.random(in: 26...104),
+                tailLength: CGFloat.random(in: 92...260),
+                rotationDegrees: Double.random(in: -20...20),
                 seed: seed
             )
         }
         // Сначала синхронизируем размер панели — иначе `nudge` не знает w×h в пикселях.
         CompanionSession.syncSpitOverlayWithCursorScreen()
-        let adjusted = nudgeSpitStainsForStacking(newStains)
-        spitStains.append(contentsOf: adjusted)
-        if spitStains.count > 10 {
-            spitStains.removeFirst(spitStains.count - 10)
-        }
+        spitOverlay.appendStains(newStains)
         CompanionSession.syncSpitOverlayWithCursorScreen()
     }
 
-    /// Без слияния в одну «кашу»: при почти той же точке чуть сдвигаем новую каплю вверх/вбок — визуально наслоение, каждая сохраняет свою форму.
-    private func nudgeSpitStainsForStacking(_ fresh: [GoblinSpitStain]) -> [GoblinSpitStain] {
-        guard !fresh.isEmpty else { return fresh }
-        guard spitPanelContentSize.width > 8, spitPanelContentSize.height > 8 else { return fresh }
-        let w = spitPanelContentSize.width
-        let h = spitPanelContentSize.height
-        var occupied = spitStains
-        var out: [GoblinSpitStain] = []
-        out.reserveCapacity(fresh.count)
-        for stain in fresh {
-            var cur = stain
-            var attempts = 0
-            while attempts < 12 {
-                let tooClose = occupied.contains { o in
-                    let dx = (cur.normalizedX - o.normalizedX) * w
-                    let dy = (cur.normalizedY - o.normalizedY) * h
-                    let sep = max(20, (cur.width + o.width) * 0.24)
-                    return hypot(dx, dy) < sep
-                }
-                if !tooClose { break }
-                cur = GoblinSpitStain(
-                    id: cur.id,
-                    normalizedX: min(0.60, max(0.40, cur.normalizedX + CGFloat.random(in: -0.028...0.028))),
-                    normalizedY: min(0.62, max(0.38, cur.normalizedY - CGFloat.random(in: 0.015...0.034))),
-                    width: cur.width,
-                    height: cur.height,
-                    tailLength: cur.tailLength,
-                    rotationDegrees: cur.rotationDegrees,
-                    seed: cur.seed,
-                    phase: cur.phase
-                )
-                attempts += 1
-            }
-            occupied.append(cur)
-            out.append(cur)
-        }
-        return out
-    }
-
     private func dissolveSpitStains(clearImmediately: Bool) {
-        spitCleanupTask?.cancel()
-        spitCleanupTask = nil
-        guard !spitStains.isEmpty else { return }
-        if clearImmediately {
-            spitStains = []
-            return
-        }
-        spitStains = spitStains.map { stain in
-            var next = stain
-            next.phase = .dissolving
-            return next
-        }
-        spitCleanupTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(
-                nanoseconds: UInt64(CompanionOverlayTiming.spitDissolveDuration * 1_000_000_000)
-            )
-            guard let self, !Task.isCancelled else { return }
-            self.spitStains = []
-            self.spitCleanupTask = nil
-        }
+        spitOverlay.dissolveAll(clearImmediately: clearImmediately)
     }
 
     func cancelDelivery() {
@@ -511,12 +452,10 @@ final class CompanionViewModel: ObservableObject {
         workReturnFinalTask = nil
         pageReactionPresenceTask?.cancel()
         pageReactionPresenceTask = nil
-        spitCleanupTask?.cancel()
-        spitCleanupTask = nil
+        spitOverlay.cancelDissolveAndClear()
         ambientSpitTask?.cancel()
         ambientSpitTask = nil
         ambientSpitActive = false
-        spitStains = []
         transientPageReactionActive = false
         linePipelineLocked = false
         phase = .idle
@@ -536,6 +475,8 @@ final class CompanionViewModel: ObservableObject {
         neuralDoomscrollPageDigest = nil
         companionPresentOpacity = 1
         companionPresentScale = 1
+        companionPresentOffsetY = 0
+        companionPresentBlurRadius = 0
     }
 
     private func hideBubbleTextImmediately() {
@@ -563,6 +504,8 @@ final class CompanionViewModel: ObservableObject {
         if alreadyOnScreen {
             companionPresentOpacity = 1
             companionPresentScale = 1
+            companionPresentOffsetY = 0
+            companionPresentBlurRadius = 0
             withAnimation(
                 .spring(
                     response: CompanionOverlayTiming.companionOnScreenNudgeResponse,
@@ -579,8 +522,13 @@ final class CompanionViewModel: ObservableObject {
                 }
             }
         } else {
-            companionPresentOpacity = 0.02
-            companionPresentScale = 0.88
+            companionPresentOpacity = 0
+            companionPresentScale = 1
+            companionPresentOffsetY = 9
+            companionPresentBlurRadius = 3.2
+            withAnimation(.easeOut(duration: 0.16)) {
+                companionPresentOpacity = 1
+            }
             withAnimation(
                 .spring(
                     response: CompanionOverlayTiming.companionEntranceSpringResponse,
@@ -589,6 +537,8 @@ final class CompanionViewModel: ObservableObject {
             ) {
                 companionPresentOpacity = 1
                 companionPresentScale = 1
+                companionPresentOffsetY = 0
+                companionPresentBlurRadius = 0
             }
         }
     }
@@ -637,7 +587,7 @@ final class CompanionViewModel: ObservableObject {
     func playWorkReturnFinalCelebration() {
         workReturnFinalTask?.cancel()
         stopAmbientSpitLoop(clearStainsImmediately: false)
-        dissolveSpitStains(clearImmediately: false)
+        // Плевки не растворяем сразу — сначала полный `final`, затем каскад в `runWorkReturnFinalCelebrationBody`.
         cancelIdle2SinglePassHandoffScheduling()
         deliveryTask?.cancel()
         deliveryTask = nil
@@ -675,7 +625,8 @@ final class CompanionViewModel: ObservableObject {
             hideBubbleTextImmediately()
             return
         }
-        playCompanionRevealPreflight(alreadyOnScreen: shouldShowCompanionSprite && phase == .idle)
+        // Финал: не запускаем «вход с нуля» (0.02 opacity) — при гонке с `syncFocusOverlayContext` гоблин на кадр «исчезает».
+        playCompanionRevealPreflight(alreadyOnScreen: true)
         let seq = resolver.resolveFrameSequence(
             phase: .idle,
             distractionInterventionActive: false,
@@ -697,6 +648,7 @@ final class CompanionViewModel: ObservableObject {
         typingSpriteEpoch = UUID()
         markLifecycleTerminalAfterFinal()
         hideBubbleTextImmediately()
+        spitOverlay.beginSequentialDissolveAfterFinal()
     }
 
     /// Живой цикл: точки → печать с редким «передумал» → удержание → исчезновение.

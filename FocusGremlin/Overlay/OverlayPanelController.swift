@@ -8,7 +8,9 @@ final class OverlayPanelController: NSObject {
     private let panel: NSPanel
     private let hostingView: NSHostingView<CompanionBubbleView>
     private let spitPanel: NSPanel
-    private let spitHostingView: NSHostingView<GoblinSpitOverlayView>
+    /// Корень `contentView`: дочерний `SpitMetalContainerView` с Auto Layout (нельзя вешать констрейнты на сам `contentView`).
+    private let spitPanelRoot: NSView
+    private let spitMetalContainer: SpitMetalContainerView
     let viewModel: CompanionViewModel
 
     private var smoothedLocation: CGPoint = .zero
@@ -31,8 +33,9 @@ final class OverlayPanelController: NSObject {
         self.viewModel = viewModel
         let root = CompanionBubbleView(viewModel: viewModel)
         self.hostingView = NSHostingView(rootView: root)
-        let spitRoot = GoblinSpitOverlayView(viewModel: viewModel)
-        self.spitHostingView = NSHostingView(rootView: spitRoot)
+        let spitRoot = NSView(frame: .zero)
+        self.spitPanelRoot = spitRoot
+        self.spitMetalContainer = SpitMetalContainerView(spitModel: viewModel.spitOverlay)
 
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 360, height: 200),
@@ -77,8 +80,16 @@ final class OverlayPanelController: NSObject {
         spitPanel.becomesKeyOnlyIfNeeded = true
         spitPanel.titleVisibility = .hidden
         spitPanel.titlebarAppearsTransparent = true
-        spitPanel.contentView = spitHostingView
-        spitHostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        spitPanel.contentView = spitPanelRoot
+        spitPanelRoot.autoresizingMask = [.width, .height]
+        spitMetalContainer.translatesAutoresizingMaskIntoConstraints = false
+        spitPanelRoot.addSubview(spitMetalContainer)
+        NSLayoutConstraint.activate([
+            spitMetalContainer.leadingAnchor.constraint(equalTo: spitPanelRoot.leadingAnchor),
+            spitMetalContainer.trailingAnchor.constraint(equalTo: spitPanelRoot.trailingAnchor),
+            spitMetalContainer.topAnchor.constraint(equalTo: spitPanelRoot.topAnchor),
+            spitMetalContainer.bottomAnchor.constraint(equalTo: spitPanelRoot.bottomAnchor)
+        ])
 
         hostingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -87,14 +98,6 @@ final class OverlayPanelController: NSObject {
             hostingView.topAnchor.constraint(equalTo: panel.contentView!.topAnchor),
             hostingView.bottomAnchor.constraint(equalTo: panel.contentView!.bottomAnchor)
         ])
-        spitHostingView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            spitHostingView.leadingAnchor.constraint(equalTo: spitPanel.contentView!.leadingAnchor),
-            spitHostingView.trailingAnchor.constraint(equalTo: spitPanel.contentView!.trailingAnchor),
-            spitHostingView.topAnchor.constraint(equalTo: spitPanel.contentView!.topAnchor),
-            spitHostingView.bottomAnchor.constraint(equalTo: spitPanel.contentView!.bottomAnchor)
-        ])
-
         let center = NotificationCenter.default
         windowFocusObservers.append(center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
@@ -160,11 +163,11 @@ final class OverlayPanelController: NSObject {
         cursorFollowTickCounter += 1
 
         let spitVisible = viewModel.shouldShowSpitOverlay
+        // Плевки: реже трогаем frame панели при неподвижном курсоре — меньше лишней работы SwiftUI.
         let spitLayoutTick =
             mouseMoved
             || cursorFollowTickCounter.isMultiple(of: 6)
-            || (spitVisible && cursorFollowTickCounter.isMultiple(of: 3))
-            || (spitVisible && cursorFollowTickCounter.isMultiple(of: 10))
+            || (spitVisible && cursorFollowTickCounter.isMultiple(of: 14))
         let spitZOrderTick = mouseMoved || cursorFollowTickCounter.isMultiple(of: 10)
         if spitLayoutTick {
             updateSpitPanel(on: screenContaining(point: mouse), refreshZOrder: spitZOrderTick)
@@ -282,8 +285,9 @@ final class OverlayPanelController: NSObject {
             spitPanel.setFrame(frame, display: false)
             CATransaction.commit()
         }
+        spitPanel.layoutIfNeeded()
 
-        viewModel.setSpitPanelContentSize(frame.size)
+        viewModel.spitOverlay.setSpitPanelContentSize(frame.size)
 
         guard viewModel.shouldShowSpitOverlay else {
             spitPanel.orderOut(nil)

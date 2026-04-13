@@ -18,6 +18,8 @@ struct CompanionBubbleView: View {
                     GremlinSpriteCharacterView(viewModel: viewModel)
                         .opacity(viewModel.companionPresentOpacity)
                         .scaleEffect(viewModel.companionPresentScale, anchor: UnitPoint(x: 0.5, y: 0.52))
+                        .offset(y: viewModel.companionPresentOffsetY)
+                        .blur(radius: viewModel.companionPresentBlurRadius)
                         .transition(Self.spriteMountTransition)
                 } else {
                     Color.clear

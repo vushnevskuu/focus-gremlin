@@ -181,9 +181,28 @@ final class GremlinCharacterAnimationResolver {
         return nil
     }
 
-    /// Явное разрешение терминальной ленты `final` — **только** `final`, без fallback на `talking` из манифеста (иначе вместо финала крутится речь).
+    /// Явное разрешение терминальной ленты `final`. Если запись в манифесте/`buildFrames` не собралась — жёсткий fallback на `final_1.png`,
+    /// иначе `workReturnFinalActive` даёт пустую/idle-цепочку и спрайт «пропадает».
     private func resolveTerminalFinalSequence() -> GremlinResolvedFrameSequence? {
-        resolveState(GremlinSpriteState.final.rawValue)
+        if let s = resolveState(GremlinSpriteState.final.rawValue), !s.frames.isEmpty {
+            return s
+        }
+        return builtInFinalSequence()
+    }
+
+    /// Запасной один проход `final_1.png` из бандла (тот же источник, что и `builtInIdle` для `idle_1`).
+    private func builtInFinalSequence() -> GremlinResolvedFrameSequence? {
+        let name = "final_1.png"
+        guard let url = GremlinSpriteManifestStore.sheetURL(filename: name) else { return nil }
+        let cells = GremlinSpriteStripConfig.stripCellCount(forFilename: name) ?? 23
+        let n = max(1, cells)
+        var frames: [GremlinSpriteFrameRef] = []
+        frames.reserveCapacity(n)
+        for c in 0 ..< n {
+            frames.append(GremlinSpriteFrameRef(url: url, stripCellIndex: c, stripCellCount: n))
+        }
+        guard !frames.isEmpty else { return nil }
+        return GremlinResolvedFrameSequence(frames: frames, fps: 20, loops: false)
     }
 
     private func resolveAppearanceSequence(idleStripFilename: String?) -> GremlinResolvedFrameSequence? {

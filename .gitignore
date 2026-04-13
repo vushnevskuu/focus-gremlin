@@ -20,9 +20,11 @@ xcuserdata/
 
 # Локальные артефакты / кэши агента (не в репозиторий)
 .derivedData/
+.derivedDataBuild/
 Artifacts/
 Memory/
 
 # Локальный venv для scripts/generate_placeholder_gremlin_sheets.py
 .venv-sprites/
 .vercel
+debug_last_frame.jpg

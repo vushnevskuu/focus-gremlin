@@ -21,7 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var cachedVisionArtifacts: CachedVisionArtifacts?
     /// Не спамить «финалом» при частом alt-tab.
     private var lastWorkReturnFinalAt: Date?
-    private static let workReturnFinalCooldown: TimeInterval = 22
+    /// Короткий антидребезг: 22 с давали «второй уход в продуктив» без финала и мгновенное пропадание спрайта.
+    private static let workReturnFinalCooldown: TimeInterval = 3.5
     private static let visionFrameReuseWindow: TimeInterval = 1.6
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -57,10 +58,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         warmUpGremlinSpriteCache()
 
-        // Таймер с selector: без Task { @MainActor } на каждом тике — иначе кадры откладываются за SwiftUI и следование «плывёт».
-        // ~32 Гц + лёгкий lerp позиции пузыря: меньше ступенек при движении мыши; плевки не трогаем orderFront каждый тик.
+        // Таймер с selector: без Task { @MainActor } на каждом тике — иначе кадры откладываются за SwiftUI.
+        // После капа drawable и облегчения шейдера можно чаще — гоблин ближе к курсору; без лишнего GPU штрафа.
         cursorTimer = Timer.scheduledTimer(
-            timeInterval: 1.0 / 32.0,
+            timeInterval: 1.0 / 50.0,
             target: self,
             selector: #selector(cursorFollowFire),
             userInfo: nil,
